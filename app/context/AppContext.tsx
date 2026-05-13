@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Sticker, Expense } from "../types";
 import defaultData from "../../Figurinhas/checklist-copa-2026.json";
+import { createClient } from "../lib/supabase/client";
 
 interface AppState {
   stickers: Sticker[];
@@ -14,62 +15,138 @@ interface AppContextType extends AppState {
   addExpense: (expense: Omit<Expense, "id">) => void;
   deleteExpense: (id: string) => void;
   isHydrated: boolean;
+  user: any;
+  signOut: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppContextProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<AppState>({ stickers: [], expenses: [] });
+  const [state, setState] = useState<AppState>({ stickers: defaultData as Sticker[], expenses: [] });
   const [isHydrated, setIsHydrated] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  
+  const supabase = createClient();
 
-  // Load from localStorage on mount
+  // Load from Supabase on mount
   useEffect(() => {
-    const savedData = localStorage.getItem("worldCupAlbumData");
-    if (savedData) {
-      setState(JSON.parse(savedData));
-    } else {
-      // Seed initial data if first time
-      const initialState = { stickers: defaultData as Sticker[], expenses: [] };
-      setState(initialState);
-      localStorage.setItem("worldCupAlbumData", JSON.stringify(initialState));
-    }
-    setIsHydrated(true);
+    const loadData = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        setIsHydrated(true);
+        return;
+      }
+      
+      setUser(session.user);
+
+      const [stickersRes, expensesRes] = await Promise.all([
+        supabase.from('user_stickers').select('*'),
+        supabase.from('expenses').select('*')
+      ]);
+
+      const userStickers = stickersRes.data || [];
+      const expenses = expensesRes.data || [];
+
+      // Merge defaultData with userStickers
+      const mergedStickers = (defaultData as Sticker[]).map((defaultSticker) => {
+        const found = userStickers.find((us: any) => us.code === defaultSticker.id);
+        if (found) {
+          return {
+            ...defaultSticker,
+            quantityOwned: found.quantity,
+            pasted: found.pasted,
+            edition: found.edition || 'normal',
+            notes: found.notes || ''
+          };
+        }
+        return defaultSticker;
+      });
+
+      setState({ stickers: mergedStickers, expenses: expenses as Expense[] });
+      setIsHydrated(true);
+    };
+
+    loadData();
   }, []);
 
-  // Save to localStorage whenever state changes, after hydration
-  useEffect(() => {
-    if (isHydrated) {
-      localStorage.setItem("worldCupAlbumData", JSON.stringify(state));
-    }
-  }, [state, isHydrated]);
+  const updateSticker = async (id: string, updates: Partial<Sticker>) => {
+    if (!user) return;
 
-  const updateSticker = (id: string, updates: Partial<Sticker>) => {
-    setState(prev => ({
-      ...prev,
-      stickers: prev.stickers.map(s => s.id === id ? { ...s, ...updates } : s)
-    }));
+    // Optimistic UI update
+    setState(prev => {
+      const newStickers = prev.stickers.map(s => s.id === id ? { ...s, ...updates } : s);
+      return { ...prev, stickers: newStickers };
+    });
+
+    // We must find the sticker AFTER the optimistic update to send the exact current values to DB
+    // Actually, we can just apply updates to the existing state finding
+    const currentSticker = state.stickers.find(s => s.id === id);
+    if (!currentSticker) return;
+
+    const finalSticker = { ...currentSticker, ...updates };
+
+    await supabase.from('user_stickers').upsert({
+      user_id: user.id,
+      code: id,
+      quantity: finalSticker.quantityOwned,
+      pasted: finalSticker.pasted,
+      edition: finalSticker.edition || 'normal',
+      notes: finalSticker.notes || ''
+    }, { onConflict: 'user_id,code' });
   };
 
-  const addExpense = (expenseData: Omit<Expense, "id">) => {
+  const addExpense = async (expenseData: Omit<Expense, "id">) => {
+    if (!user) return;
+
+    const { data, error } = await supabase.from('expenses').insert([{
+      user_id: user.id,
+      date: expenseData.date,
+      description: expenseData.description,
+      amount_spent: expenseData.amountSpent,
+      packs_bought: expenseData.packsBought,
+      notes: expenseData.notes || ''
+    }]).select().single();
+
+    if (error || !data) {
+      console.error("Error adding expense", error);
+      return;
+    }
+
     const newExpense: Expense = {
-      ...expenseData,
-      id: crypto.randomUUID(),
+      id: data.id,
+      date: data.date,
+      description: data.description,
+      amountSpent: Number(data.amount_spent),
+      packsBought: data.packs_bought,
+      notes: data.notes
     };
+
     setState(prev => ({
       ...prev,
       expenses: [...prev.expenses, newExpense]
     }));
   };
 
-  const deleteExpense = (id: string) => {
+  const deleteExpense = async (id: string) => {
+    if (!user) return;
+    
+    // Optimistic UI
     setState(prev => ({
       ...prev,
       expenses: prev.expenses.filter(e => e.id !== id)
     }));
+
+    await supabase.from('expenses').delete().eq('id', id).eq('user_id', user.id);
+  };
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/login';
   };
 
   return (
-    <AppContext.Provider value={{ ...state, updateSticker, addExpense, deleteExpense, isHydrated }}>
+    <AppContext.Provider value={{ ...state, updateSticker, addExpense, deleteExpense, isHydrated, user, signOut }}>
       {children}
     </AppContext.Provider>
   );

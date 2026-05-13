@@ -2,10 +2,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAppContext } from "../context/AppContext";
 
 export default function Header() {
   const [query, setQuery] = useState("");
   const router = useRouter();
+  const { signOut } = useAppContext();
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && query.trim()) {
@@ -30,6 +32,14 @@ export default function Header() {
             className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder-on-primary-container outline-none ml-2" 
           />
         </div>
+        <button 
+          onClick={signOut}
+          className="flex items-center gap-2 px-4 py-2 bg-error/10 text-error rounded-full hover:bg-error/20 transition-colors ml-4"
+          title="Sign out"
+        >
+          <span className="material-symbols-outlined text-sm">logout</span>
+          <span className="font-label-md text-sm">Sair</span>
+        </button>
       </div>
     </header>
   );
