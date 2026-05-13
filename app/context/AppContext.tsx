@@ -28,17 +28,17 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
   
   const supabase = createClient();
 
-  // Load from Supabase on mount
+  // Load from Supabase on mount & auth changes
   useEffect(() => {
-    const loadData = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
+    const loadData = async (currentUser: any) => {
+      if (!currentUser) {
+        setUser(null);
+        setState({ stickers: defaultData as Sticker[], expenses: [] });
         setIsHydrated(true);
         return;
       }
       
-      setUser(session.user);
+      setUser(currentUser);
 
       const [stickersRes, expensesRes] = await Promise.all([
         supabase.from('user_stickers').select('*'),
@@ -60,14 +60,32 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
             notes: found.notes || ''
           };
         }
-        return defaultSticker;
+        return {
+          ...defaultSticker,
+          quantityOwned: 0,
+          pasted: false,
+          edition: 'normal',
+          notes: ''
+        };
       });
 
       setState({ stickers: mergedStickers, expenses: expenses as Expense[] });
       setIsHydrated(true);
     };
 
-    loadData();
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      loadData(session?.user || null);
+    });
+
+    // Listen for auth state changes (login/logout)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      loadData(session?.user || null);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const updateSticker = async (id: string, updates: Partial<Sticker>) => {
@@ -86,7 +104,7 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
 
     const finalSticker = { ...currentSticker, ...updates };
 
-    await supabase.from('user_stickers').upsert({
+    const { error } = await supabase.from('user_stickers').upsert({
       user_id: user.id,
       code: id,
       quantity: finalSticker.quantityOwned,
@@ -94,6 +112,10 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
       edition: finalSticker.edition || 'normal',
       notes: finalSticker.notes || ''
     }, { onConflict: 'user_id,code' });
+
+    if (error) {
+      console.error("Error updating sticker:", error);
+    }
   };
 
   const addExpense = async (expenseData: Omit<Expense, "id">) => {
@@ -137,7 +159,10 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
       expenses: prev.expenses.filter(e => e.id !== id)
     }));
 
-    await supabase.from('expenses').delete().eq('id', id).eq('user_id', user.id);
+    const { error } = await supabase.from('expenses').delete().eq('id', id).eq('user_id', user.id);
+    if (error) {
+      console.error("Error deleting expense:", error);
+    }
   };
 
   const signOut = async () => {
