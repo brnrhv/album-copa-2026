@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Expense } from "../../types";
+import { Expense } from "../types";
 
 interface ExpenseModalProps {
   isOpen: boolean;

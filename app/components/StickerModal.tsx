@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Sticker } from "../../types";
+import { Sticker } from "../types";
 
 interface StickerModalProps {
   sticker: Sticker | null;
