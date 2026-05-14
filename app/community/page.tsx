@@ -5,6 +5,7 @@ import { useAppContext } from "../context/AppContext";
 import { createClient } from "../lib/supabase/client";
 import defaultData from "../../Figurinhas/checklist-copa-2026.json";
 import { Sticker } from "../types";
+import VirtualAlbumModal from "../components/VirtualAlbumModal";
  
 interface CommunityMember {
   id: string;
@@ -16,12 +17,14 @@ interface CommunityMember {
   // Figurinhas cruzadas
   theyHaveINeed: Sticker[];
   iHaveTheyNeed: Sticker[];
+  rawStickers: any[];
 }
  
 export default function CommunityPage() {
   const { user, stickers: myStickers, isHydrated } = useAppContext();
   const [members, setMembers] = useState<CommunityMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedFriendForAlbum, setSelectedFriendForAlbum] = useState<CommunityMember | null>(null);
   const supabase = createClient();
  
   const totalAlbumStickers = defaultData.length;
@@ -111,6 +114,7 @@ export default function CommunityPage() {
               totalRepeats: repeatsCount,
               theyHaveINeed,
               iHaveTheyNeed,
+              rawStickers: friendStickers,
             };
           });
  
@@ -200,6 +204,15 @@ export default function CommunityPage() {
                       <span className="block text-xs text-on-surface-variant font-label-sm">REPETIDAS</span>
                       <span className="font-title-lg text-title-lg font-bold text-tertiary">{member.totalRepeats}</span>
                     </div>
+                    <div className="w-full md:w-auto md:ml-auto">
+                      <button 
+                        onClick={() => setSelectedFriendForAlbum(member)}
+                        className="w-full md:w-auto px-5 py-2.5 bg-surface-container-high hover:bg-secondary hover:text-on-secondary border border-outline-variant/50 text-xs text-on-surface font-bold rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-md hover:shadow-secondary/10 active:shadow-inner"
+                      >
+                        <span className="material-symbols-outlined text-sm">menu_book</span>
+                        Ver Álbum Virtual
+                      </button>
+                    </div>
                   </div>
                 </div>
  
@@ -272,6 +285,16 @@ export default function CommunityPage() {
             );
           })}
         </div>
+      )}
+
+      {/* Virtual Album Modal Trigger */}
+      {selectedFriendForAlbum && (
+        <VirtualAlbumModal
+          isOpen={!!selectedFriendForAlbum}
+          onClose={() => setSelectedFriendForAlbum(null)}
+          friendName={selectedFriendForAlbum.full_name}
+          friendRawStickers={selectedFriendForAlbum.rawStickers}
+        />
       )}
     </div>
   );
