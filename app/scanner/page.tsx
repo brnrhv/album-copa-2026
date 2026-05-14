@@ -72,6 +72,55 @@ export default function ScannerPage() {
     );
   };
 
+  // Helper to compress image before sending to serverless APIs (prevents 413 payload too large)
+  const compressImage = (file: File): Promise<Blob | File> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+      
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          URL.revokeObjectURL(objectUrl);
+          resolve(file);
+          return;
+        }
+
+        let width = img.width;
+        let height = img.height;
+        const maxDim = 1200;
+
+        if (width > height && width > maxDim) {
+          height *= maxDim / width;
+          width = maxDim;
+        } else if (height > maxDim) {
+          width *= maxDim / height;
+          height = maxDim;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            URL.revokeObjectURL(objectUrl);
+            resolve(blob || file);
+          },
+          'image/jpeg',
+          0.8
+        );
+      };
+      
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(file);
+      };
+      img.src = objectUrl;
+    });
+  };
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -81,7 +130,7 @@ export default function ScannerPage() {
     setScanError(null);
     setDetectedCandidates([]);
     setAddSuccess(false);
-    setOcrStatus("Inicializando Câmera...");
+    setOcrStatus("Inicializando...");
 
     // Create preview
     const url = URL.createObjectURL(file);
@@ -89,9 +138,14 @@ export default function ScannerPage() {
     setIsScanning(true);
 
     try {
-      setOcrStatus("Carregando foto...");
+      setOcrStatus("Otimizando Imagem...");
+      // Compress on client to reduce payload size to ~200kb instead of 8MB+
+      const optimizedBlob = await compressImage(file);
+
+      setOcrStatus("Enviando para Gemini...");
       const formData = new FormData();
-      formData.append("image", file);
+      // Ensure we pass a safe file name to Gemini/Node.js
+      formData.append("image", optimizedBlob, "sticker.jpg");
 
       setOcrStatus("Analisando com Gemini Vision...");
       
@@ -100,15 +154,19 @@ export default function ScannerPage() {
         body: formData
       });
 
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || "Erro de conexão com a IA.");
+      let result: any;
+      try {
+        result = await response.json();
+      } catch (jsonErr) {
+        // Throw original status error text if it's not valid JSON (like Vercel 413/500 HTML pages)
+        if (!response.ok) {
+          throw new Error(`Erro do servidor (${response.status}): Falha ao processar imagem na nuvem.`);
+        }
+        throw new Error("Formato de resposta do servidor inválido.");
       }
 
-      const result = await response.json();
-      
-      if (result.error) {
-        throw new Error(result.error);
+      if (!response.ok || result.error) {
+        throw new Error(result.error || `Erro na requisição (${response.status})`);
       }
 
       const rawCodes: string[] = result.codes || [];
