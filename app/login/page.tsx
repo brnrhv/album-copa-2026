@@ -4,12 +4,14 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "../lib/supabase/client"
 import Link from "next/link"
+import { Turnstile } from "@marsidev/react-turnstile"
 
 export default function LoginPage() {
   const [identifier, setIdentifier] = useState("") // Can be Username or Email
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -17,6 +19,12 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setError(null)
+
+    if (!captchaToken) {
+      setError("Please complete the anti-robot verification.")
+      setLoading(false)
+      return
+    }
 
     try {
       let emailToUse = identifier.trim()
@@ -50,6 +58,9 @@ export default function LoginPage() {
       const { error: loginError } = await supabase.auth.signInWithPassword({
         email: emailToUse,
         password,
+        options: {
+          captchaToken,
+        }
       })
 
       if (loginError) {
@@ -66,6 +77,8 @@ export default function LoginPage() {
       setLoading(false)
     }
   }
+
+  const siteKey = "0x4AAAAAADPMaXnB1zUazOwr"
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-surface">
@@ -110,9 +123,18 @@ export default function LoginPage() {
             />
           </div>
 
+          <div className="my-2 flex justify-center">
+            <Turnstile
+              siteKey={siteKey}
+              onSuccess={(token) => setCaptchaToken(token)}
+              onError={() => setError("Failed to load bot protection. Please refresh.")}
+              onExpire={() => setCaptchaToken(null)}
+            />
+          </div>
+
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !captchaToken}
             className="w-full bg-primary text-on-primary py-3 rounded-full font-label-lg mt-4 disabled:opacity-50 transition-opacity"
           >
             {loading ? "Signing in..." : "Sign in"}
