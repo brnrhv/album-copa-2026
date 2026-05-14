@@ -10,6 +10,7 @@ export default function ProfilePage() {
  
   const [fullName, setFullName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [isPrivate, setIsPrivate] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
@@ -20,6 +21,7 @@ export default function ProfilePage() {
     if (profile) {
       setFullName(profile.full_name || "");
       setAvatarUrl(profile.avatar_url || null);
+      setIsPrivate(profile.is_private || false);
     } else if (user) {
       setFullName(user.email?.split('@')[0] || "");
     }
@@ -83,7 +85,8 @@ export default function ProfilePage() {
       
       await updateProfile({
         full_name: fullName.trim(),
-        avatar_url: avatarUrl
+        avatar_url: avatarUrl,
+        is_private: isPrivate
       });
  
       setMessage({ text: "Perfil atualizado com sucesso!", type: "success" });
@@ -179,6 +182,30 @@ export default function ProfilePage() {
               required
               className="w-full bg-surface-container-lowest border border-outline rounded-xl px-4 py-3 text-on-surface focus:border-secondary focus:ring-1 focus:ring-secondary transition-all outline-none"
             />
+          </div>
+
+          {/* Privacy Setting */}
+          <div 
+            onClick={() => setIsPrivate(!isPrivate)}
+            className="p-4 bg-surface-container-low border border-outline-variant/30 hover:border-outline-variant/70 rounded-xl flex items-start justify-between gap-4 select-none cursor-pointer hover:bg-surface-container transition-all"
+          >
+            <div className="flex gap-3">
+              <span className={`material-symbols-outlined mt-0.5 transition-colors ${isPrivate ? 'text-amber-400' : 'text-on-surface-variant'}`}>
+                {isPrivate ? 'lock' : 'public'}
+              </span>
+              <div>
+                <span className="block font-label-md text-on-surface font-bold flex items-center gap-2">
+                  Manter Álbum Privado
+                  {isPrivate && <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded font-bold">PRIVADO</span>}
+                </span>
+                <span className="block text-xs text-on-surface-variant/70 mt-0.5 leading-relaxed">
+                  Ao ativar, outros colecionadores não poderão ver o seu Álbum Virtual nem cruzar figurinhas com você na aba Comunidade.
+                </span>
+              </div>
+            </div>
+            <div className={`w-11 h-6 rounded-full flex items-center flex-shrink-0 p-1 transition-colors duration-300 ${isPrivate ? 'bg-secondary' : 'bg-outline'}`}>
+              <div className={`bg-white w-4 h-4 rounded-full shadow-md transform duration-300 ease-in-out ${isPrivate ? 'translate-x-5' : 'translate-x-0'}`}></div>
+            </div>
           </div>
  
           <div className="pt-4 flex justify-end">

@@ -58,7 +58,7 @@ export default function CommunityPage() {
  
         // 3. Mapear os outros usuários e calcular a inteligência de trocas
         const otherMembers: CommunityMember[] = (profiles || [])
-          .filter((profile: any) => profile.id !== user.id)
+          .filter((profile: any) => profile.id !== user.id && !profile.is_private)
           .map((profile: any) => {
             const friendStickers = (allStickers || []).filter(
               (s: any) => s.user_id === profile.id && s.quantity > 0
