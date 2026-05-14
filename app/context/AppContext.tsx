@@ -50,8 +50,8 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
       setUser(currentUser);
 
       const [stickersRes, expensesRes, profileRes] = await Promise.all([
-        supabase.from('user_stickers').select('*'),
-        supabase.from('expenses').select('*'),
+        supabase.from('user_stickers').select('*').eq('user_id', currentUser.id),
+        supabase.from('expenses').select('*').eq('user_id', currentUser.id),
         supabase.from('profiles').select('*').eq('id', currentUser.id).single()
       ]);
 
