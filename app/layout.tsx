@@ -3,6 +3,7 @@ import "./globals.css";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import { AppContextProvider } from "./context/AppContext";
+import LayoutWrapper from "./components/LayoutWrapper";
 
 export const metadata: Metadata = {
   title: "FIFA World Cup 2026™ Album Manager",
@@ -24,11 +25,9 @@ export default function RootLayout({
       </head>
       <body className="font-body-md pitch-texture min-h-screen">
         <AppContextProvider>
-          <Sidebar />
-          <Header />
-          <main className="ml-sidebar-width pt-24 px-container-padding pb-container-padding">
+          <LayoutWrapper>
             {children}
-          </main>
+          </LayoutWrapper>
         </AppContextProvider>
       </body>
     </html>
