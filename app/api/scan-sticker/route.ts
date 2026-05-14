@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export async function POST(request: NextRequest) {
   try {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY?.trim();
     if (!apiKey || apiKey === "SUA_API_KEY_AQUI" || apiKey === "") {
       return NextResponse.json(
         { error: "Por favor, configure a GEMINI_API_KEY no arquivo .env.local para habilitar o scanner IA." },
