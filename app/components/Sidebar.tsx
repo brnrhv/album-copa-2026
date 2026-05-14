@@ -11,11 +11,12 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
 
   const navLinks = [
     { href: "/", label: "Dashboard", icon: "dashboard" },
-    { href: "/collection", label: "My Collection", icon: "style" },
-    { href: "/repeated", label: "Repeated", icon: "swap_horiz" },
-    { href: "/missing", label: "Missing", icon: "flag" },
-    { href: "/community", label: "Community", icon: "groups" },
-    { href: "/expenses", label: "Expenses", icon: "account_balance_wallet" },
+    { href: "/collection", label: "Minha Coleção", icon: "style" },
+    { href: "/repeated", label: "Repetidas", icon: "swap_horiz" },
+    { href: "/missing", label: "Faltando", icon: "flag" },
+    { href: "/scanner", label: "Escanear Figurinha", icon: "photo_camera" },
+    { href: "/community", label: "Comunidade", icon: "groups" },
+    { href: "/expenses", label: "Meus Gastos", icon: "account_balance_wallet" },
   ];
 
   // Handle fallback avatar if no photo
@@ -38,7 +39,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
         <div className="px-6 mb-10 flex justify-between items-start">
           <div>
             <span className="font-headline-lg text-headline-lg font-bold text-on-surface tracking-tight">Pro Collector</span>
-            <p className="font-label-sm text-label-sm text-on-primary-container mt-1">Sticker Manager</p>
+            <p className="font-label-sm text-label-sm text-on-primary-container mt-1">Gerenciador de Figurinhas</p>
           </div>
           
           {/* Close Button for Mobile */}
@@ -98,7 +99,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
               {displayName}
             </span>
             <span className="block text-[11px] text-on-surface-variant truncate font-medium leading-none mt-0.5">
-              My Profile
+              Meu Perfil
             </span>
           </div>
         </Link>
