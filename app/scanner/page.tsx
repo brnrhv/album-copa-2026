@@ -155,12 +155,18 @@ export default function ScannerPage() {
       });
 
       let result: any;
+      const responseClone = response.clone();
       try {
         result = await response.json();
       } catch (jsonErr) {
-        // Throw original status error text if it's not valid JSON (like Vercel 413/500 HTML pages)
+        // Try to read text error directly from clone
+        const errorText = await responseClone.text().catch(() => "Sem detalhes.");
+        console.error("Falha ao ler JSON. Conteúdo retornado:", errorText);
+        
         if (!response.ok) {
-          throw new Error(`Erro do servidor (${response.status}): Falha ao processar imagem na nuvem.`);
+          // Clean HTML if returned by Vercel
+          const snippet = errorText.replace(/<[^>]*>/g, ' ').substring(0, 150).trim();
+          throw new Error(`Erro do servidor (${response.status}): ${snippet || "Falha ao processar imagem na nuvem."}`);
         }
         throw new Error("Formato de resposta do servidor inválido.");
       }
