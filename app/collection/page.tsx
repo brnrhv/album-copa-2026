@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import StickerModal from "../components/StickerModal";
+import BulkAddModal from "../components/BulkAddModal";
 import { Sticker } from "../types";
 
 export default function CollectionPage() {
-  const { stickers, isHydrated, updateSticker } = useAppContext();
+  const { stickers, isHydrated, updateSticker, bulkAddStickers } = useAppContext();
   const [activeTeam, setActiveTeam] = useState<string>("");
   const [selectedSticker, setSelectedSticker] = useState<Sticker | null>(null);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
 
   if (!isHydrated) return <div className="animate-pulse h-screen bg-surface"></div>;
 
@@ -16,10 +18,25 @@ export default function CollectionPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <div>
-        <h1 className="font-display-lg text-display-lg text-on-surface mb-2">My Collection</h1>
-        <p className="font-body-md text-on-surface-variant">Browse your stickers, log duplicates, and update your physical album status.</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="font-display-lg text-display-lg text-on-surface mb-2">Minha Coleção</h1>
+          <p className="font-body-md text-on-surface-variant">Navegue pelas suas figurinhas, registre repetidas e complete o seu álbum físico.</p>
+        </div>
+        <button 
+          onClick={() => setIsBulkModalOpen(true)}
+          className="self-start md:self-auto flex items-center gap-2 px-5 py-3 bg-secondary text-on-secondary font-bold rounded-xl transition-all hover:opacity-90 active:scale-[0.98] shadow-lg shadow-secondary/20 glow-blue flex-shrink-0 font-label-md"
+        >
+          <span className="material-symbols-outlined">playlist_add</span>
+          Adicionar em Massa
+        </button>
       </div>
+
+      <BulkAddModal 
+        isOpen={isBulkModalOpen}
+        onClose={() => setIsBulkModalOpen(false)}
+        onSave={bulkAddStickers}
+      />
 
       {activeTeam === "" ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
