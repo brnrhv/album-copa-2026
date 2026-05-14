@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useAppContext } from "../context/AppContext";
 import { Sticker } from "../types";
+import Tesseract from "tesseract.js";
 
 function getTeamFlag(teamCode: string): string {
   const flags: Record<string, string> = {
@@ -20,6 +21,8 @@ export default function ScannerPage() {
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [scanProgress, setScanProgress] = useState(0);
+  const [ocrStatus, setOcrStatus] = useState("");
   const [scanComplete, setScanComplete] = useState(false);
   
   const [ocrCode, setOcrCode] = useState("");
@@ -66,19 +69,60 @@ export default function ScannerPage() {
     setOcrCode("");
     setMatchedSticker(null);
     setAddSuccess(false);
+    setScanProgress(0);
+    setOcrStatus("Carregando...");
 
     // Create preview
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
     
-    // Simulate AI Scanner Scan
     setIsScanning(true);
-    setTimeout(() => {
+
+    Tesseract.recognize(
+      file,
+      'eng',
+      { 
+        logger: m => {
+          if (m.status === 'recognizing text') {
+            setOcrStatus("Lendo Figurinha...");
+            setScanProgress(Math.round(m.progress * 100));
+          } else {
+            setOcrStatus("Preparando IA...");
+          }
+        } 
+      }
+    ).then(({ data: { text } }) => {
+      // Normalize text to uppercase & remove special characters/spaces
+      const cleaned = text.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      
+      // Match 2 to 4 uppercase letters followed by 1 or 2 digits
+      const match = cleaned.match(/[A-Z]{2,4}\d{1,2}/);
+      
+      let codeFound = "";
+      if (match) {
+        const rawMatch = match[0];
+        const splitMatch = rawMatch.match(/^([A-Z]+)(\d+)$/);
+        if (splitMatch) {
+          const prefix = splitMatch[1];
+          let num = splitMatch[2];
+          if (num.length === 1) {
+            num = '0' + num;
+          }
+          codeFound = prefix + num;
+        }
+      }
+      
+      setOcrCode(codeFound);
       setIsScanning(false);
       setScanComplete(true);
-      // Pre-focus input for confirmation
-      document.getElementById("ocrInput")?.focus();
-    }, 2200);
+      setTimeout(() => {
+        document.getElementById("ocrInput")?.focus();
+      }, 300);
+    }).catch(err => {
+      console.error("OCR Failed:", err);
+      setIsScanning(false);
+      setScanComplete(true);
+    });
   };
 
   const handleTriggerUpload = () => {
@@ -212,11 +256,19 @@ export default function ScannerPage() {
                     <div className="absolute bottom-4 right-4 w-8 h-8 border-b-4 border-r-4 border-secondary rounded-br-lg"></div>
 
                     {/* Central Text */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20">
-                      <div className="px-4 py-2 bg-secondary text-on-secondary font-mono text-xs font-bold tracking-widest uppercase rounded-md flex items-center gap-2 animate-pulse shadow-xl">
-                        <span className="w-2 h-2 bg-white rounded-full animate-ping"></span>
-                        Processando IA...
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 px-8">
+                      <div className="px-4 py-2 bg-secondary text-on-secondary font-mono text-xs font-bold tracking-widest uppercase rounded-md flex items-center gap-2 shadow-xl mb-3">
+                        <span className="w-2 h-2 bg-white rounded-full animate-ping flex-shrink-0"></span>
+                        {ocrStatus}
                       </div>
+                      {scanProgress > 0 && (
+                        <div className="w-full max-w-[200px] bg-white/20 rounded-full h-2 overflow-hidden shadow-inner">
+                          <div className="bg-white h-full transition-all duration-300" style={{ width: `${scanProgress}%` }}></div>
+                        </div>
+                      )}
+                      {scanProgress > 0 && (
+                        <span className="text-white text-[10px] font-mono font-bold tracking-widest mt-1 opacity-80">{scanProgress}%</span>
+                      )}
                     </div>
                   </div>
                 )}
@@ -279,7 +331,9 @@ export default function ScannerPage() {
             </div>
             
             <p className="text-[10px] text-on-surface-variant/60 mt-2 italic">
-              *(Nesta versão demo, digite manualmente o código detectado na foto para simular a validação do OCR).*
+              {ocrCode 
+                ? "✓ Código detectado automaticamente pela IA! Se houver erro, você pode editar acima." 
+                : "A IA processou a imagem. Se não encontrou o código, você pode digitar acima manualmente."}
             </p>
           </div>
 
