@@ -164,9 +164,19 @@ export default function ScannerPage() {
         console.error("Falha ao ler JSON. Conteúdo retornado:", errorText);
         
         if (!response.ok) {
-          // Clean HTML if returned by Vercel
-          const snippet = errorText.replace(/<[^>]*>/g, ' ').substring(0, 150).trim();
-          throw new Error(`Erro do servidor (${response.status}): ${snippet || "Falha ao processar imagem na nuvem."}`);
+          // Capture more characters, collapse whitespace, and display the raw text snippet
+          const cleanText = errorText
+            .replace(/<script[^>]*>([\S\s]*?)<\/script>/gmi, '') // remove scripts
+            .replace(/<style[^>]*>([\S\s]*?)<\/style>/gmi, '')   // remove styles
+            .replace(/<[^>]*>/g, ' ')                            // strip HTML tags
+            .replace(/\s+/g, ' ')                                // collapse whitespaces
+            .trim();
+          
+          // If clean text is empty, use original text sliced up
+          const rawSlice = errorText.substring(0, 300).trim();
+          const finalMsg = cleanText.substring(0, 250) || rawSlice || "Resposta vazia do servidor.";
+          
+          throw new Error(`Erro ${response.status}: ${finalMsg}`);
         }
         throw new Error("Formato de resposta do servidor inválido.");
       }
