@@ -18,7 +18,7 @@ export default function RegisterPage() {
   const supabase = createClient()
 
   const validateUsername = (uname: string) => {
-    const regex = /^[a-z0-9._-]{3,25}$/
+    const regex = /^[a-zA-Z0-9._-]{3,25}$/
     return regex.test(uname)
   }
 
@@ -28,7 +28,7 @@ export default function RegisterPage() {
     setError(null)
 
     if (!validateUsername(username)) {
-      setError("Username must be 3-25 characters, lowercase, numbers, dots, underscores or hyphens only.")
+      setError("Username must be 3-25 characters, letters, numbers, dots, underscores or hyphens only.")
       setLoading(false)
       return
     }
@@ -103,7 +103,7 @@ export default function RegisterPage() {
               <input
                 type="text"
                 value={username}
-                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s/g, ''))}
+                onChange={(e) => setUsername(e.target.value.replace(/\s/g, ''))}
                 required
                 minLength={3}
                 maxLength={25}
