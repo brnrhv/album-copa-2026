@@ -26,17 +26,22 @@ function SearchResults() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="font-display-lg text-display-lg text-on-surface mb-2">Search Results</h1>
+        <h1 className="font-display-lg text-display-lg text-on-surface mb-2">Resultados da Busca</h1>
         <p className="font-body-md text-on-surface-variant">
-          Showing {results.length} results for "{q}"
+          Exibindo {results.length} resultados para "{q}"
         </p>
       </div>
 
       {results.length === 0 ? (
-        <div className="glass-card p-12 text-center rounded-xl border border-outline-variant/30">
-          <span className="material-symbols-outlined text-6xl text-on-surface-variant mb-4 opacity-50">search_off</span>
-          <h3 className="font-headline-md text-on-surface">No stickers found</h3>
-          <p className="text-on-primary-container mt-2">Try searching for a different player name, country, or sticker code.</p>
+        <div className="glass-card p-12 text-center rounded-xl border border-error/20 bg-error/5">
+          <span className="material-symbols-outlined text-6xl text-error mb-4 opacity-70 animate-pulse">warning</span>
+          <h3 className="font-headline-md text-on-surface font-bold mb-1">Não encontrei o código que você escreveu</h3>
+          <p className="text-error-container font-mono text-lg font-bold bg-black/20 inline-block px-3 py-1 rounded border border-error/20 mb-4">
+            {q}
+          </p>
+          <p className="text-on-surface-variant mt-2 max-w-md mx-auto">
+            Por favor, verifique a digitação ou tente pesquisar pelo nome do jogador ou país da seleção.
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -94,7 +99,7 @@ function SearchResults() {
                   isMissing ? "bg-black/60" : "bg-secondary-container/90"
                 }`}>
                   <p className={`font-label-sm text-label-sm truncate ${isMissing ? "text-white" : "text-white font-bold"}`}>
-                    {sticker.name || "Unknown Player"}
+                    {sticker.name || "Jogador Desconhecido"}
                   </p>
                   <p className={`font-label-sm text-[10px] ${
                     isMissing ? (sticker.category === 'Badge' ? 'text-tertiary' : 'text-on-primary-container') : "text-secondary-fixed-dim"
@@ -107,17 +112,17 @@ function SearchResults() {
                 <div className="absolute top-2 right-2 flex flex-col gap-1 items-end z-20">
                   {isRepeated && (
                     <span className="bg-tertiary text-on-tertiary px-2 py-0.5 rounded font-label-sm text-[10px] shadow-lg">
-                      x{sticker.quantityOwned - 1} REPEATED
+                      x{sticker.quantityOwned - 1} REPETIDA
                     </span>
                   )}
                   {!isMissing && sticker.pasted && (
                     <span className="bg-secondary/80 text-on-secondary px-2 py-0.5 rounded font-label-sm text-[10px] flex items-center gap-1 backdrop-blur-sm">
-                      <span className="material-symbols-outlined text-[10px]">done</span> PASTED
+                      <span className="material-symbols-outlined text-[10px]">done</span> COLADA
                     </span>
                   )}
                   {isMissing && (
                     <span className="bg-error-container text-error px-2 py-0.5 rounded font-label-sm text-[10px]">
-                      MISSING
+                      FALTANDO
                     </span>
                   )}
                 </div>

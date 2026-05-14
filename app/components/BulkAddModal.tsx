@@ -113,15 +113,13 @@ export default function BulkAddModal({ isOpen, onClose, onSave }: BulkAddModalPr
               </div>
               
               {result.notFound.length > 0 && (
-                <div className="mt-1 pt-1.5 border-t border-current/20">
-                  <p className="text-xs font-semibold opacity-90 mb-1">Não encontradas na checklist:</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {result.notFound.map((code, i) => (
-                      <span key={i} className="px-1.5 py-0.5 bg-black/20 rounded text-xs font-mono tracking-wide">
-                        {code}
-                      </span>
-                    ))}
-                  </div>
+                <div className="mt-1 pt-1.5 border-t border-current/20 flex flex-col gap-1">
+                  {result.notFound.map((code, i) => (
+                    <div key={i} className="flex items-center gap-1.5 text-xs">
+                      <span className="material-symbols-outlined text-xs text-error">warning</span>
+                      <span>Não encontrei o código: <strong className="font-mono bg-black/20 px-1 rounded">{code}</strong></span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
