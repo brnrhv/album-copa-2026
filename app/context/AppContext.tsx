@@ -11,7 +11,8 @@ export interface UserProfile {
   full_name: string;
   avatar_url: string | null;
   username: string;
-  is_private?: boolean;
+  hide_album?: boolean;
+  hide_trades?: boolean;
 }
 
 interface AppState {
@@ -24,7 +25,7 @@ interface AppContextType extends AppState {
   updateSticker: (id: string, updates: Partial<Sticker>) => void;
   addExpense: (expense: Omit<Expense, "id">) => void;
   deleteExpense: (id: string) => void;
-  updateProfile: (updates: { full_name?: string; avatar_url?: string | null; is_private?: boolean }) => Promise<void>;
+  updateProfile: (updates: { full_name?: string; avatar_url?: string | null; hide_album?: boolean; hide_trades?: boolean }) => Promise<void>;
   bulkAddStickers: (rawCodes: string[]) => Promise<{ success: number; notFound: string[] }>;
   isHydrated: boolean;
   user: any;
@@ -266,7 +267,7 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
     }
   };
 
-  const updateProfile = async (updates: { full_name?: string; avatar_url?: string | null; is_private?: boolean }) => {
+  const updateProfile = async (updates: { full_name?: string; avatar_url?: string | null; hide_album?: boolean; hide_trades?: boolean }) => {
     if (!user) return;
 
     // Optimistic UI
@@ -281,7 +282,8 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
       username: state.profile?.username,
       full_name: updates.full_name !== undefined ? updates.full_name : state.profile?.full_name,
       avatar_url: updates.avatar_url !== undefined ? updates.avatar_url : state.profile?.avatar_url,
-      is_private: updates.is_private !== undefined ? updates.is_private : (state.profile?.is_private || false),
+      hide_album: updates.hide_album !== undefined ? updates.hide_album : (state.profile?.hide_album || false),
+      hide_trades: updates.hide_trades !== undefined ? updates.hide_trades : (state.profile?.hide_trades || false),
       updated_at: new Date().toISOString()
     }, { onConflict: 'id' });
 

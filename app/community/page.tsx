@@ -18,6 +18,8 @@ interface CommunityMember {
   theyHaveINeed: Sticker[];
   iHaveTheyNeed: Sticker[];
   rawStickers: any[];
+  hideAlbum: boolean;
+  hideTrades: boolean;
 }
  
 export default function CommunityPage() {
@@ -58,52 +60,55 @@ export default function CommunityPage() {
  
         // 3. Mapear os outros usuários e calcular a inteligência de trocas
         const otherMembers: CommunityMember[] = (profiles || [])
-          .filter((profile: any) => profile.id !== user.id && !profile.is_private)
+          .filter((profile: any) => profile.id !== user.id)
           .map((profile: any) => {
             const friendStickers = (allStickers || []).filter(
               (s: any) => s.user_id === profile.id && s.quantity > 0
             );
- 
+
             const uniqueCount = friendStickers.length;
             const repeatsCount = friendStickers.reduce(
               (acc: number, s: any) => acc + (s.quantity > 1 ? s.quantity - 1 : 0), 0
             );
- 
+
             // Lógica de inteligência de cruzamento:
             const theyHaveINeed: Sticker[] = [];
             const iHaveTheyNeed: Sticker[] = [];
- 
-            // a) O que ELES têm repetido que EU NÃO tenho
-            friendStickers.forEach((friendSticker: any) => {
-              const template = stickerTemplatesMap[friendSticker.code];
-              if (!template) return;
- 
-              const myCopy = myStickers.find((s) => s.id === friendSticker.code);
-              const isFriendRepeated = friendSticker.quantity > 1;
-              const doINeedIt = !myCopy || myCopy.quantityOwned === 0;
- 
-              if (isFriendRepeated && doINeedIt) {
-                theyHaveINeed.push({
-                  ...template,
-                  quantityOwned: friendSticker.quantity,
-                  pasted: friendSticker.pasted,
-                  edition: friendSticker.edition || 'normal',
-                  notes: friendSticker.notes || ''
-                });
-              }
-            });
- 
-            // b) O que EU tenho repetido que ELES NÃO têm
-            myStickers.forEach((mySticker) => {
-              if (mySticker.quantityOwned <= 1) return; // Não tenho repetida
- 
-              const friendCopy = friendStickers.find((fs: any) => fs.code === mySticker.id);
-              const doesFriendNeedIt = !friendCopy || friendCopy.quantity === 0;
- 
-              if (doesFriendNeedIt) {
-                iHaveTheyNeed.push(mySticker);
-              }
-            });
+
+            // Só calculamos correspondência se ele não ocultou trocas
+            if (!profile.hide_trades) {
+              // a) O que ELES têm repetido que EU NÃO tenho
+              friendStickers.forEach((friendSticker: any) => {
+                const template = stickerTemplatesMap[friendSticker.code];
+                if (!template) return;
+
+                const myCopy = myStickers.find((s) => s.id === friendSticker.code);
+                const isFriendRepeated = friendSticker.quantity > 1;
+                const doINeedIt = !myCopy || myCopy.quantityOwned === 0;
+
+                if (isFriendRepeated && doINeedIt) {
+                  theyHaveINeed.push({
+                    ...template,
+                    quantityOwned: friendSticker.quantity,
+                    pasted: friendSticker.pasted,
+                    edition: friendSticker.edition || 'normal',
+                    notes: friendSticker.notes || ''
+                  });
+                }
+              });
+
+              // b) O que EU tenho repetido que ELES NÃO têm
+              myStickers.forEach((mySticker) => {
+                if (mySticker.quantityOwned <= 1) return; // Não tenho repetida
+
+                const friendCopy = friendStickers.find((fs: any) => fs.code === mySticker.id);
+                const doesFriendNeedIt = !friendCopy || friendCopy.quantity === 0;
+
+                if (doesFriendNeedIt) {
+                  iHaveTheyNeed.push(mySticker);
+                }
+              });
+            }
  
             return {
               id: profile.id,
@@ -115,6 +120,8 @@ export default function CommunityPage() {
               theyHaveINeed,
               iHaveTheyNeed,
               rawStickers: friendStickers,
+              hideAlbum: !!profile.hide_album,
+              hideTrades: !!profile.hide_trades,
             };
           });
  
@@ -205,13 +212,23 @@ export default function CommunityPage() {
                       <span className="font-title-lg text-title-lg font-bold text-tertiary">{member.totalRepeats}</span>
                     </div>
                     <div className="w-full md:w-auto md:ml-auto">
-                      <button 
-                        onClick={() => setSelectedFriendForAlbum(member)}
-                        className="w-full md:w-auto px-5 py-2.5 bg-surface-container-high hover:bg-secondary hover:text-on-secondary border border-outline-variant/50 text-xs text-on-surface font-bold rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-md hover:shadow-secondary/10 active:shadow-inner"
-                      >
-                        <span className="material-symbols-outlined text-sm">menu_book</span>
-                        Ver Álbum Virtual
-                      </button>
+                      {member.hideAlbum ? (
+                        <div 
+                          className="w-full md:w-auto px-5 py-2.5 bg-surface-container-low/40 border border-outline-variant/20 text-xs text-on-surface-variant/60 font-semibold rounded-xl flex items-center justify-center gap-2 cursor-not-allowed select-none"
+                          title="Este colecionador ocultou o álbum virtual"
+                        >
+                          <span className="material-symbols-outlined text-sm opacity-50">menu_book_locked</span>
+                          Álbum Privado
+                        </div>
+                      ) : (
+                        <button 
+                          onClick={() => setSelectedFriendForAlbum(member)}
+                          className="w-full md:w-auto px-5 py-2.5 bg-surface-container-high hover:bg-secondary hover:text-on-secondary border border-outline-variant/50 text-xs text-on-surface font-bold rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-md hover:shadow-secondary/10 active:shadow-inner"
+                        >
+                          <span className="material-symbols-outlined text-sm">menu_book</span>
+                          Ver Álbum Virtual
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -223,7 +240,14 @@ export default function CommunityPage() {
                     Sugestões de Troca
                   </h4>
  
-                  {!hasMatches ? (
+                  {member.hideTrades ? (
+                    <div className="p-6 bg-amber-500/5 rounded-xl text-center border border-amber-500/20 border-dashed flex flex-col items-center justify-center gap-2">
+                      <span className="material-symbols-outlined text-amber-400 font-bold">lock</span>
+                      <p className="text-on-surface-variant/80 text-xs font-medium">
+                        Este colecionador optou por ocultar as sugestões e cruzamentos de figurinhas para trocas.
+                      </p>
+                    </div>
+                  ) : !hasMatches ? (
                     <div className="p-6 bg-surface-container-lowest rounded-xl text-center border border-outline-variant/50 border-dashed">
                       <p className="text-on-surface-variant text-sm">
                         Sem trocas sugeridas no momento. Vocês já possuem as mesmas figurinhas ou ninguém tem o que o outro precisa!

@@ -10,7 +10,8 @@ export default function ProfilePage() {
  
   const [fullName, setFullName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [isPrivate, setIsPrivate] = useState(false);
+  const [hideAlbum, setHideAlbum] = useState(false);
+  const [hideTrades, setHideTrades] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
@@ -21,7 +22,8 @@ export default function ProfilePage() {
     if (profile) {
       setFullName(profile.full_name || "");
       setAvatarUrl(profile.avatar_url || null);
-      setIsPrivate(profile.is_private || false);
+      setHideAlbum(profile.hide_album || false);
+      setHideTrades(profile.hide_trades || false);
     } else if (user) {
       setFullName(user.email?.split('@')[0] || "");
     }
@@ -86,7 +88,8 @@ export default function ProfilePage() {
       await updateProfile({
         full_name: fullName.trim(),
         avatar_url: avatarUrl,
-        is_private: isPrivate
+        hide_album: hideAlbum,
+        hide_trades: hideTrades
       });
  
       setMessage({ text: "Perfil atualizado com sucesso!", type: "success" });
@@ -184,27 +187,52 @@ export default function ProfilePage() {
             />
           </div>
 
-          {/* Privacy Setting */}
-          <div 
-            onClick={() => setIsPrivate(!isPrivate)}
-            className="p-4 bg-surface-container-low border border-outline-variant/30 hover:border-outline-variant/70 rounded-xl flex items-start justify-between gap-4 select-none cursor-pointer hover:bg-surface-container transition-all"
-          >
-            <div className="flex gap-3">
-              <span className={`material-symbols-outlined mt-0.5 transition-colors ${isPrivate ? 'text-amber-400' : 'text-on-surface-variant'}`}>
-                {isPrivate ? 'lock' : 'public'}
-              </span>
-              <div>
-                <span className="block font-label-md text-on-surface font-bold flex items-center gap-2">
-                  Manter Álbum Privado
-                  {isPrivate && <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded font-bold">PRIVADO</span>}
+          {/* Privacy Settings */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Hide Album Toggle */}
+            <div 
+              onClick={() => setHideAlbum(!hideAlbum)}
+              className="p-4 bg-surface-container-low border border-outline-variant/30 hover:border-outline-variant/70 rounded-xl flex items-start justify-between gap-3 select-none cursor-pointer hover:bg-surface-container transition-all h-full"
+            >
+              <div className="flex gap-2.5">
+                <span className={`material-symbols-outlined mt-0.5 transition-colors ${hideAlbum ? 'text-amber-400 font-bold' : 'text-on-surface-variant'}`}>
+                  {hideAlbum ? 'menu_book_locked' : 'menu_book'}
                 </span>
-                <span className="block text-xs text-on-surface-variant/70 mt-0.5 leading-relaxed">
-                  Ao ativar, outros colecionadores não poderão ver o seu Álbum Virtual nem cruzar figurinhas com você na aba Comunidade.
-                </span>
+                <div>
+                  <span className="block text-sm text-on-surface font-bold leading-tight">
+                    Ocultar Álbum Virtual
+                  </span>
+                  <span className="block text-[11px] text-on-surface-variant/70 mt-1 leading-snug">
+                    Outros colecionadores não poderão folhear o seu livro virtual de figurinhas.
+                  </span>
+                </div>
+              </div>
+              <div className={`w-10 h-5 rounded-full flex items-center flex-shrink-0 p-0.5 transition-colors duration-300 ${hideAlbum ? 'bg-secondary' : 'bg-outline'}`}>
+                <div className={`bg-white w-4 h-4 rounded-full shadow-md transform duration-300 ease-in-out ${hideAlbum ? 'translate-x-5' : 'translate-x-0'}`}></div>
               </div>
             </div>
-            <div className={`w-11 h-6 rounded-full flex items-center flex-shrink-0 p-1 transition-colors duration-300 ${isPrivate ? 'bg-secondary' : 'bg-outline'}`}>
-              <div className={`bg-white w-4 h-4 rounded-full shadow-md transform duration-300 ease-in-out ${isPrivate ? 'translate-x-5' : 'translate-x-0'}`}></div>
+
+            {/* Hide Trades Toggle */}
+            <div 
+              onClick={() => setHideTrades(!hideTrades)}
+              className="p-4 bg-surface-container-low border border-outline-variant/30 hover:border-outline-variant/70 rounded-xl flex items-start justify-between gap-3 select-none cursor-pointer hover:bg-surface-container transition-all h-full"
+            >
+              <div className="flex gap-2.5">
+                <span className={`material-symbols-outlined mt-0.5 transition-colors ${hideTrades ? 'text-amber-400 font-bold' : 'text-on-surface-variant'}`}>
+                  {hideTrades ? 'lock' : 'handshake'}
+                </span>
+                <div>
+                  <span className="block text-sm text-on-surface font-bold leading-tight">
+                    Ocultar Sugestões
+                  </span>
+                  <span className="block text-[11px] text-on-surface-variant/70 mt-1 leading-snug">
+                    Não exibir cruzamentos e sugestões de trocas de figurinhas com você.
+                  </span>
+                </div>
+              </div>
+              <div className={`w-10 h-5 rounded-full flex items-center flex-shrink-0 p-0.5 transition-colors duration-300 ${hideTrades ? 'bg-secondary' : 'bg-outline'}`}>
+                <div className={`bg-white w-4 h-4 rounded-full shadow-md transform duration-300 ease-in-out ${hideTrades ? 'translate-x-5' : 'translate-x-0'}`}></div>
+              </div>
             </div>
           </div>
  
