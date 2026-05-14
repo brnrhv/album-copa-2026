@@ -30,8 +30,13 @@ export default function LoginPage() {
           .maybeSingle()
 
         if (profileError) {
-          console.error("Profile lookup error:", profileError)
-          throw new Error("Unable to search for username. Please try using your email instead.")
+          console.error("Profile lookup error details:", {
+            message: profileError.message,
+            details: profileError.details,
+            hint: profileError.hint,
+            code: profileError.code
+          })
+          throw new Error(`Database error: ${profileError.message || "Unable to search for username."} (Code: ${profileError.code || "unknown"})`)
         }
 
         if (!profile || !profile.email) {
