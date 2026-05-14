@@ -4,6 +4,8 @@ import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import { AppContextProvider } from "./context/AppContext";
 import LayoutWrapper from "./components/LayoutWrapper";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: "FIFA World Cup 2026™ Album Manager",
@@ -29,6 +31,8 @@ export default function RootLayout({
             {children}
           </LayoutWrapper>
         </AppContextProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

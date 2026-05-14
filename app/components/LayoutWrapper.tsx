@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
   const isAuthPage = pathname === "/login" || pathname === "/register";
 
@@ -15,9 +17,9 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
 
   return (
     <>
-      <Sidebar />
-      <Header />
-      <main className="ml-sidebar-width pt-24 px-container-padding pb-container-padding">
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <Header onToggleMenu={() => setIsSidebarOpen(!isSidebarOpen)} />
+      <main className="lg:ml-sidebar-width pt-20 lg:pt-24 px-4 lg:px-container-padding pb-container-padding transition-all duration-300">
         {children}
       </main>
     </>
