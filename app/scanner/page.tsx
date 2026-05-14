@@ -92,23 +92,79 @@ export default function ScannerPage() {
         } 
       }
     ).then(({ data: { text } }) => {
-      // Normalize text to uppercase & remove special characters/spaces
-      const cleaned = text.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      // 1. Split into words and cleanup
+      const rawWords = text.toUpperCase().split(/[^A-Z0-9]+/);
+      const cleanFull = text.toUpperCase().replace(/[^A-Z0-9]/g, '');
       
-      // Match 2 to 4 uppercase letters followed by 1 or 2 digits
-      const match = cleaned.match(/[A-Z]{2,4}\d{1,2}/);
+      // Get valid stickers from context
+      const validStickers = stickers;
       
+      // Fuzzy character normalizer for common OCR confusion
+      const toFuzzy = (str: string) => {
+        return str
+          .replace(/I/g, '1').replace(/L/g, '1')
+          .replace(/O/g, '0')
+          .replace(/B/g, '8')
+          .replace(/S/g, '5')
+          .replace(/G/g, '6')
+          .replace(/Z/g, '2');
+      };
+
       let codeFound = "";
-      if (match) {
-        const rawMatch = match[0];
-        const splitMatch = rawMatch.match(/^([A-Z]+)(\d+)$/);
-        if (splitMatch) {
-          const prefix = splitMatch[1];
-          let num = splitMatch[2];
-          if (num.length === 1) {
-            num = '0' + num;
+
+      // STEP A: Direct EXACT lookup in parsed words
+      for (const word of rawWords) {
+        if (word.length < 3) continue;
+        // Normalize code if needed (e.g., BRA7 -> BRA07)
+        let normalizedWord = word;
+        const parts = word.match(/^([A-Z]+)(\d+)$/);
+        if (parts) {
+          let num = parts[2];
+          if (num.length === 1) num = '0' + num;
+          normalizedWord = parts[1] + num;
+        }
+
+        const match = validStickers.find(s => s.id === normalizedWord || s.code === normalizedWord);
+        if (match) {
+          codeFound = match.id;
+          break;
+        }
+      }
+
+      // STEP B: Check if entire clean block contains ANY exact valid ID
+      if (!codeFound) {
+        for (const s of validStickers) {
+          if (cleanFull.includes(s.id) || cleanFull.includes(s.code)) {
+            codeFound = s.id;
+            break;
           }
-          codeFound = prefix + num;
+        }
+      }
+
+      // STEP C: Advanced FUZZY logic (e.g. C1V19 instead of CIV19)
+      if (!codeFound) {
+        const fuzzyFull = toFuzzy(cleanFull);
+        for (const s of validStickers) {
+          const fuzzyId = toFuzzy(s.id);
+          if (fuzzyFull.includes(fuzzyId)) {
+            codeFound = s.id;
+            break;
+          }
+        }
+      }
+
+      // STEP D: If still not found, fall back to the old Regex on raw text
+      if (!codeFound) {
+        const match = cleanFull.match(/[A-Z]{2,4}\d{1,2}/);
+        if (match) {
+          const rawMatch = match[0];
+          const splitMatch = rawMatch.match(/^([A-Z]+)(\d+)$/);
+          if (splitMatch) {
+            const prefix = splitMatch[1];
+            let num = splitMatch[2];
+            if (num.length === 1) num = '0' + num;
+            codeFound = prefix + num;
+          }
         }
       }
       
