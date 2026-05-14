@@ -270,6 +270,8 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
   const updateProfile = async (updates: { full_name?: string; avatar_url?: string | null; hide_album?: boolean; hide_trades?: boolean }) => {
     if (!user) return;
 
+    const previousProfile = state.profile;
+
     // Optimistic UI
     setState(prev => ({
       ...prev,
@@ -289,6 +291,9 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
 
     if (error) {
       console.error("Error updating profile:", error);
+      // Revert state
+      setState(prev => ({ ...prev, profile: previousProfile }));
+      throw error;
     }
   };
 
