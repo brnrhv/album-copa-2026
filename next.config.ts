@@ -4,7 +4,7 @@ const cspHeader = `
   default-src 'self';
   script-src 'self' 'unsafe-eval' 'unsafe-inline' https://challenges.cloudflare.com;
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-  img-src 'self' blob: data: https://hzbsistalqhnhzqushyq.supabase.co;
+  img-src 'self' blob: data: https://hzbsistalqhnhzqushyq.supabase.co https://flagcdn.com;
   font-src 'self' https://fonts.gstatic.com;
   connect-src 'self' https://hzbsistalqhnhzqushyq.supabase.co wss://hzbsistalqhnhzqushyq.supabase.co https://generativelanguage.googleapis.com https://challenges.cloudflare.com;
   frame-src 'self' https://challenges.cloudflare.com;
