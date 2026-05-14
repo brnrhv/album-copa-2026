@@ -5,15 +5,24 @@ import { Sticker, Expense } from "../types";
 import defaultData from "../../Figurinhas/checklist-copa-2026.json";
 import { createClient } from "../lib/supabase/client";
 
+export interface UserProfile {
+  id: string;
+  email: string;
+  full_name: string;
+  avatar_url: string | null;
+}
+
 interface AppState {
   stickers: Sticker[];
   expenses: Expense[];
+  profile: UserProfile | null;
 }
 
 interface AppContextType extends AppState {
   updateSticker: (id: string, updates: Partial<Sticker>) => void;
   addExpense: (expense: Omit<Expense, "id">) => void;
   deleteExpense: (id: string) => void;
+  updateProfile: (updates: { full_name?: string; avatar_url?: string | null }) => Promise<void>;
   isHydrated: boolean;
   user: any;
   signOut: () => Promise<void>;
@@ -22,7 +31,7 @@ interface AppContextType extends AppState {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppContextProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<AppState>({ stickers: defaultData as Sticker[], expenses: [] });
+  const [state, setState] = useState<AppState>({ stickers: defaultData as Sticker[], expenses: [], profile: null });
   const [isHydrated, setIsHydrated] = useState(false);
   const [user, setUser] = useState<any>(null);
   
@@ -33,20 +42,22 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
     const loadData = async (currentUser: any) => {
       if (!currentUser) {
         setUser(null);
-        setState({ stickers: defaultData as Sticker[], expenses: [] });
+        setState({ stickers: defaultData as Sticker[], expenses: [], profile: null });
         setIsHydrated(true);
         return;
       }
       
       setUser(currentUser);
 
-      const [stickersRes, expensesRes] = await Promise.all([
+      const [stickersRes, expensesRes, profileRes] = await Promise.all([
         supabase.from('user_stickers').select('*'),
-        supabase.from('expenses').select('*')
+        supabase.from('expenses').select('*'),
+        supabase.from('profiles').select('*').eq('id', currentUser.id).single()
       ]);
 
       const userStickers = stickersRes.data || [];
       const expenses = expensesRes.data || [];
+      const profile = profileRes.data || null;
 
       // Merge defaultData with userStickers
       const mergedStickers = (defaultData as Sticker[]).map((defaultSticker) => {
@@ -69,7 +80,7 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
         };
       });
 
-      setState({ stickers: mergedStickers, expenses: expenses as Expense[] });
+      setState({ stickers: mergedStickers, expenses: expenses as Expense[], profile });
       setIsHydrated(true);
     };
 
@@ -165,13 +176,35 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
     }
   };
 
+  const updateProfile = async (updates: { full_name?: string; avatar_url?: string | null }) => {
+    if (!user) return;
+
+    // Optimistic UI
+    setState(prev => ({
+      ...prev,
+      profile: prev.profile ? { ...prev.profile, ...updates } : null
+    }));
+
+    const { error } = await supabase.from('profiles').upsert({
+      id: user.id,
+      email: user.email,
+      full_name: updates.full_name,
+      avatar_url: updates.avatar_url,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'id' });
+
+    if (error) {
+      console.error("Error updating profile:", error);
+    }
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     window.location.href = '/login';
   };
 
   return (
-    <AppContext.Provider value={{ ...state, updateSticker, addExpense, deleteExpense, isHydrated, user, signOut }}>
+    <AppContext.Provider value={{ ...state, updateSticker, addExpense, deleteExpense, updateProfile, isHydrated, user, signOut }}>
       {children}
     </AppContext.Provider>
   );
