@@ -233,10 +233,9 @@ export default function CommunityPage() {
                               <div 
                                 key={sticker.id} 
                                 className="px-2.5 py-1 bg-surface-container-lowest border border-outline-variant rounded text-xs font-bold text-on-surface inline-flex items-center gap-1"
-                                title={`${sticker.name} (${sticker.team})`}
+                                title={`${sticker.name ? sticker.name + ' - ' : ''}${sticker.team}`}
                               >
-                                <span className="text-[10px]">{sticker.team}</span>
-                                <span>{sticker.number}</span>
+                                <span>{sticker.code}</span>
                               </div>
                             ))}
                           </div>
@@ -258,10 +257,9 @@ export default function CommunityPage() {
                               <div 
                                 key={sticker.id} 
                                 className="px-2.5 py-1 bg-surface-container-lowest border border-outline-variant rounded text-xs font-bold text-on-surface inline-flex items-center gap-1"
-                                title={`${sticker.name} (${sticker.team})`}
+                                title={`${sticker.name ? sticker.name + ' - ' : ''}${sticker.team}`}
                               >
-                                <span className="text-[10px]">{sticker.team}</span>
-                                <span>{sticker.number}</span>
+                                <span>{sticker.code}</span>
                               </div>
                             ))}
                           </div>
