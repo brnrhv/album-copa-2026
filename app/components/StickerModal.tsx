@@ -12,7 +12,6 @@ interface StickerModalProps {
 
 export default function StickerModal({ sticker, isOpen, onClose, onSave }: StickerModalProps) {
   const [qty, setQty] = useState(0);
-  const [pasted, setPasted] = useState(false);
   const [notes, setNotes] = useState("");
   const [name, setName] = useState("");
   const [edition, setEdition] = useState<'normal' | 'shiny' | 'lilac' | 'bronze' | 'silver' | 'gold'>('normal');
@@ -20,7 +19,6 @@ export default function StickerModal({ sticker, isOpen, onClose, onSave }: Stick
   useEffect(() => {
     if (sticker) {
       setQty(sticker.quantityOwned);
-      setPasted(sticker.pasted);
       setNotes(sticker.notes || "");
       setName(sticker.name || "");
       setEdition(sticker.edition || 'normal');
@@ -32,7 +30,6 @@ export default function StickerModal({ sticker, isOpen, onClose, onSave }: Stick
   const handleSave = () => {
     onSave(sticker.id, {
       quantityOwned: qty,
-      pasted: pasted,
       notes: notes,
       name: name,
       edition: edition === 'normal' ? undefined : edition
@@ -102,22 +99,6 @@ export default function StickerModal({ sticker, isOpen, onClose, onSave }: Stick
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div>
-              <label className="font-label-sm text-on-primary-container block">Pasted in Album?</label>
-              <p className="text-xs text-on-surface-variant">Is this sticker glued to your physical album?</p>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input 
-                type="checkbox" 
-                className="sr-only peer" 
-                checked={pasted}
-                onChange={(e) => setPasted(e.target.checked)}
-                disabled={qty === 0}
-              />
-              <div className={`w-11 h-6 bg-surface-container-highest rounded-full peer peer-focus:ring-4 peer-focus:ring-secondary/30 transition-all ${pasted ? "peer-checked:bg-secondary" : ""} peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all ${qty === 0 ? "opacity-50" : ""}`}></div>
-            </label>
-          </div>
 
           <div className="space-y-2">
             <label className="font-label-sm text-on-primary-container block">Card Edition</label>

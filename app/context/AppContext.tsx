@@ -70,7 +70,6 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
           return {
             ...defaultSticker,
             quantityOwned: found.quantity,
-            pasted: found.pasted,
             edition: found.edition || 'normal',
             notes: found.notes || ''
           };
@@ -78,7 +77,6 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
         return {
           ...defaultSticker,
           quantityOwned: 0,
-          pasted: false,
           edition: 'normal',
           notes: ''
         };
@@ -123,7 +121,6 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
       user_id: user.id,
       code: id,
       quantity: finalSticker.quantityOwned,
-      pasted: finalSticker.pasted,
       edition: finalSticker.edition || 'normal',
       notes: finalSticker.notes || ''
     }, { onConflict: 'user_id,code' });
@@ -195,7 +192,6 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
         user_id: user.id,
         code: stickerId,
         quantity: finalUpdates.quantityOwned,
-        pasted: original.pasted,
         edition: original.edition || 'normal',
         notes: original.notes || ''
       });

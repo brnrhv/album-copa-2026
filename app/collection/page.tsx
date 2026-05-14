@@ -5,6 +5,7 @@ import { useAppContext } from "../context/AppContext";
 import StickerModal from "../components/StickerModal";
 import BulkAddModal from "../components/BulkAddModal";
 import { Sticker } from "../types";
+import { getFlagEmoji } from "../utils/flags";
 
 export default function CollectionPage() {
   const { stickers, isHydrated, updateSticker, bulkAddStickers } = useAppContext();
@@ -53,7 +54,14 @@ export default function CollectionPage() {
                 className="glass-card flex items-center justify-between p-4 hover:bg-surface-container-high transition-colors text-left border-outline-variant hover:border-secondary hover:shadow-[0_0_15px_rgba(0,82,255,0.15)] group"
               >
                 <div>
-                  <h3 className="font-title-md text-on-surface font-bold group-hover:text-secondary transition-colors">{team}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-title-md text-on-surface font-bold group-hover:text-secondary transition-colors">{team}</h3>
+                    {progress === 100 && (
+                      <span className="text-xl animate-scale-in drop-shadow-md" title="Seleção Completa!">
+                        {getFlagEmoji(team)}
+                      </span>
+                    )}
+                  </div>
                   <p className="font-label-sm text-on-surface-variant">
                     {collectedInTeam} / {totalInTeam}
                   </p>
@@ -92,7 +100,14 @@ export default function CollectionPage() {
                 {/* Header */}
                 <div className="w-full flex items-center justify-between p-6 text-left border-b border-outline-variant/30 bg-surface-container-low">
                   <div className="flex flex-col gap-1">
-                    <h3 className="font-headline-md text-on-surface font-bold">{team}</h3>
+                    <div className="flex items-center gap-3">
+                      <h3 className="font-headline-md text-on-surface font-bold">{team}</h3>
+                      {progress === 100 && (
+                        <span className="text-3xl animate-scale-in drop-shadow-lg" title="Seleção Completa!">
+                          {getFlagEmoji(team)}
+                        </span>
+                      )}
+                    </div>
                     <p className="font-label-sm text-on-surface-variant">
                       {collectedInTeam} / {totalInTeam} COLLECTED ({progress}%)
                     </p>
@@ -138,9 +153,7 @@ export default function CollectionPage() {
                           sticker.edition === 'gold' ? "border-[#FFD700] shadow-[0_0_15px_rgba(255,215,0,0.4)] hover:shadow-[0_0_25px_rgba(255,215,0,0.7)]" : ""
                         ) : "";
 
-                        const defaultBorder = sticker.pasted
-                                  ? "border-secondary bg-secondary/10 shadow-[0_0_15px_rgba(0,82,255,0.2)] hover:shadow-[0_0_20px_rgba(0,82,255,0.4)]"
-                                  : "border-secondary/50 bg-surface-container hover:border-secondary hover:shadow-[0_0_15px_rgba(0,82,255,0.3)]";
+                        const defaultBorder = "border-secondary/50 bg-surface-container hover:border-secondary hover:shadow-[0_0_15px_rgba(0,82,255,0.3)]";
 
                         return (
                           <div 
@@ -169,11 +182,7 @@ export default function CollectionPage() {
                                   {sticker.code}
                                 </span>
                               )}
-                              {!isMissing && sticker.pasted && (
-                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-20 pointer-events-none drop-shadow-xl z-20">
-                                  <span className="material-symbols-outlined text-[100px] text-white">verified</span>
-                                </div>
-                              )}
+
                             </div>
                             
                             <div className={`absolute bottom-0 left-0 right-0 p-3 glass-card border-none backdrop-blur-md transition-colors z-20 ${
@@ -196,11 +205,7 @@ export default function CollectionPage() {
                                   x{sticker.quantityOwned - 1} REPEATED
                                 </span>
                               )}
-                              {!isMissing && sticker.pasted && (
-                                <span className="bg-secondary/80 text-on-secondary px-2 py-0.5 rounded font-label-sm text-[10px] flex items-center gap-1 backdrop-blur-sm">
-                                  <span className="material-symbols-outlined text-[10px]">done</span> PASTED
-                                </span>
-                              )}
+
                               {isMissing && (
                                 <span className="bg-error-container text-error px-2 py-0.5 rounded font-label-sm text-[10px]">
                                   MISSING

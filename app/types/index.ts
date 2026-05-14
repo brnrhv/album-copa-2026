@@ -9,7 +9,6 @@ export interface Sticker {
   name: string; // e.g., "Lionel Messi" or empty
   isSpecial: boolean;
   quantityOwned: number; // 0 = missing, 1 = collected, >1 = repeated
-  pasted: boolean;
   notes: string;
   image?: string;
   edition?: 'normal' | 'lilac' | 'bronze' | 'silver' | 'gold' | 'shiny';

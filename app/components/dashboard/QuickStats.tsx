@@ -10,7 +10,7 @@ export default function QuickStats() {
   }
 
   const totalSpent = expenses.reduce((acc, curr) => acc + curr.amountSpent, 0);
-  const pasted = stickers.filter(s => s.pasted && s.quantityOwned > 0).length;
+  const unique = stickers.filter(s => s.quantityOwned > 0).length;
 
   return (
     <div className="md:col-span-4 flex flex-col gap-gutter">
@@ -33,12 +33,12 @@ export default function QuickStats() {
             <span className="material-symbols-outlined text-on-tertiary">inventory_2</span>
           </div>
           <div>
-            <p className="font-label-sm text-label-sm text-on-tertiary-fixed-variant">PASTED STICKERS</p>
-            <h4 className="font-headline-md text-headline-md text-on-surface">{pasted} Stickers</h4>
+            <p className="font-label-sm text-label-sm text-on-tertiary-fixed-variant">UNIQUE STICKERS</p>
+            <h4 className="font-headline-md text-headline-md text-on-surface">{unique} Stickers</h4>
           </div>
         </div>
         <p className="font-body-md text-on-surface-variant mb-4">
-          Stickers permanently placed in your album. Keep pasting!
+          Unique stickers collected in your album. Keep collecting!
         </p>
       </div>
     </div>

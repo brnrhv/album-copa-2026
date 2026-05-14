@@ -57,9 +57,7 @@ function SearchResults() {
               sticker.edition === 'gold' ? "border-[#FFD700] shadow-[0_0_15px_rgba(255,215,0,0.4)] hover:shadow-[0_0_25px_rgba(255,215,0,0.7)]" : ""
             ) : "";
 
-            const defaultBorder = sticker.pasted
-                      ? "border-secondary bg-secondary/10 shadow-[0_0_15px_rgba(0,82,255,0.2)] hover:shadow-[0_0_20px_rgba(0,82,255,0.4)]"
-                      : "border-secondary/50 bg-surface-container hover:border-secondary hover:shadow-[0_0_15px_rgba(0,82,255,0.3)]";
+            const defaultBorder = "border-secondary/50 bg-surface-container hover:border-secondary hover:shadow-[0_0_15px_rgba(0,82,255,0.3)]";
 
             return (
               <div 
@@ -88,11 +86,7 @@ function SearchResults() {
                       {sticker.code}
                     </span>
                   )}
-                  {!isMissing && sticker.pasted && (
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-20 pointer-events-none drop-shadow-xl z-20">
-                      <span className="material-symbols-outlined text-[100px] text-white">verified</span>
-                    </div>
-                  )}
+
                 </div>
                 
                 <div className={`absolute bottom-0 left-0 right-0 p-3 glass-card border-none backdrop-blur-md transition-colors z-20 ${
@@ -115,11 +109,7 @@ function SearchResults() {
                       x{sticker.quantityOwned - 1} REPETIDA
                     </span>
                   )}
-                  {!isMissing && sticker.pasted && (
-                    <span className="bg-secondary/80 text-on-secondary px-2 py-0.5 rounded font-label-sm text-[10px] flex items-center gap-1 backdrop-blur-sm">
-                      <span className="material-symbols-outlined text-[10px]">done</span> COLADA
-                    </span>
-                  )}
+
                   {isMissing && (
                     <span className="bg-error-container text-error px-2 py-0.5 rounded font-label-sm text-[10px]">
                       FALTANDO

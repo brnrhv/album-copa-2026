@@ -109,7 +109,6 @@ export default function CommunityPage() {
                 theyHaveINeed.push({
                   ...template,
                   quantityOwned: friendSticker.quantity,
-                  pasted: friendSticker.pasted,
                   edition: friendSticker.edition || 'normal',
                   notes: friendSticker.notes || ''
                 });

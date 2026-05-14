@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import defaultData from "../../Figurinhas/checklist-copa-2026.json";
+import { getFlagEmoji } from "../utils/flags";
 
 interface VirtualAlbumModalProps {
   isOpen: boolean;
@@ -39,7 +40,6 @@ export default function VirtualAlbumModal({ isOpen, onClose, friendName, friendR
       return {
         ...s,
         quantityOwned: match ? match.quantity : 0,
-        pasted: match ? match.pasted : false,
         edition: match ? (match.edition || 'normal') : 'normal',
       };
     });
@@ -72,9 +72,16 @@ export default function VirtualAlbumModal({ isOpen, onClose, friendName, friendR
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
         
         <div className="relative z-10 flex justify-between items-end border-b-2 border-secondary pb-2 mb-6">
-          <h4 className="font-display-md text-xl sm:text-2xl font-bold text-on-surface tracking-wide uppercase">
-            {teamName}
-          </h4>
+          <div className="flex items-center gap-3">
+            <h4 className="font-display-md text-xl sm:text-2xl font-bold text-on-surface tracking-wide uppercase">
+              {teamName}
+            </h4>
+            {collected === total && total > 0 && (
+              <span className="text-2xl sm:text-3xl animate-scale-in drop-shadow-md" title="Seleção Completa!">
+                {getFlagEmoji(teamName)}
+              </span>
+            )}
+          </div>
           <div className="text-right font-mono text-xs text-on-surface-variant font-bold">
             {collected}/{total} Figurinhas
           </div>
@@ -93,7 +100,7 @@ export default function VirtualAlbumModal({ isOpen, onClose, friendName, friendR
             if (isCollected) {
               stickerBg = "bg-surface-container border-solid shadow-md";
               labelText = "text-on-surface font-bold";
-              stickerBorder = sticker.pasted ? "border-secondary" : "border-secondary/50";
+              stickerBorder = "border-secondary/50";
               
               if (sticker.edition === 'shiny') stickerBorder = "border-[#00E5FF] shadow-[0_0_10px_rgba(0,229,255,0.3)]";
               else if (sticker.edition === 'gold') stickerBorder = "border-[#FFD700] shadow-[0_0_10px_rgba(255,215,0,0.3)]";
