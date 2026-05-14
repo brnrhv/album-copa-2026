@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import defaultData from "../../Figurinhas/checklist-copa-2026.json";
-import { getFlagEmoji } from "../utils/flags";
+import { renderTeamFlag } from "../utils/flags";
 
 interface VirtualAlbumModalProps {
   isOpen: boolean;
@@ -77,9 +77,9 @@ export default function VirtualAlbumModal({ isOpen, onClose, friendName, friendR
               {teamName}
             </h4>
             {collected === total && total > 0 && (
-              <span className="text-2xl sm:text-3xl animate-scale-in drop-shadow-md" title="Seleção Completa!">
-                {getFlagEmoji(teamName)}
-              </span>
+              <div className="animate-scale-in drop-shadow-md" title="Seleção Completa!">
+                {renderTeamFlag(teamName, "w-8 h-6 rounded shadow-sm object-cover")}
+              </div>
             )}
           </div>
           <div className="text-right font-mono text-xs text-on-surface-variant font-bold">

@@ -5,7 +5,7 @@ import { useAppContext } from "../context/AppContext";
 import StickerModal from "../components/StickerModal";
 import BulkAddModal from "../components/BulkAddModal";
 import { Sticker } from "../types";
-import { getFlagEmoji } from "../utils/flags";
+import { renderTeamFlag } from "../utils/flags";
 
 export default function CollectionPage() {
   const { stickers, isHydrated, updateSticker, bulkAddStickers } = useAppContext();
@@ -57,9 +57,9 @@ export default function CollectionPage() {
                   <div className="flex items-center gap-2">
                     <h3 className="font-title-md text-on-surface font-bold group-hover:text-secondary transition-colors">{team}</h3>
                     {progress === 100 && (
-                      <span className="text-xl animate-scale-in drop-shadow-md" title="Seleção Completa!">
-                        {getFlagEmoji(team)}
-                      </span>
+                      <div className="animate-scale-in drop-shadow-md" title="Seleção Completa!">
+                        {renderTeamFlag(team, "w-8 h-6 rounded shadow-sm object-cover")}
+                      </div>
                     )}
                   </div>
                   <p className="font-label-sm text-on-surface-variant">
@@ -103,9 +103,9 @@ export default function CollectionPage() {
                     <div className="flex items-center gap-3">
                       <h3 className="font-headline-md text-on-surface font-bold">{team}</h3>
                       {progress === 100 && (
-                        <span className="text-3xl animate-scale-in drop-shadow-lg" title="Seleção Completa!">
-                          {getFlagEmoji(team)}
-                        </span>
+                        <div className="animate-scale-in drop-shadow-lg" title="Seleção Completa!">
+                          {renderTeamFlag(team, "w-10 h-7 rounded shadow-md object-cover")}
+                        </div>
                       )}
                     </div>
                     <p className="font-label-sm text-on-surface-variant">
@@ -178,7 +178,7 @@ export default function CollectionPage() {
                               {sticker.image ? (
                                 <img src={sticker.image} alt={sticker.name} className={`w-full h-full object-cover ${isMissing ? 'opacity-20' : ''}`} />
                               ) : (
-                                <span className={`font-display-lg ${isMissing ? 'text-on-surface/20' : 'text-on-surface/40'}`}>
+                                <span className={`font-display-lg ${isMissing ? 'text-on-surface/20' : 'text-on-surface/90 font-bold drop-shadow-sm'}`}>
                                   {sticker.code}
                                 </span>
                               )}
@@ -203,6 +203,12 @@ export default function CollectionPage() {
                               {isRepeated && (
                                 <span className="bg-tertiary text-on-tertiary px-2 py-0.5 rounded font-label-sm text-[10px] shadow-lg">
                                   x{sticker.quantityOwned - 1} REPEATED
+                                </span>
+                              )}
+
+                              {!isMissing && (
+                                <span className="bg-secondary/80 text-on-secondary px-2 py-0.5 rounded font-label-sm text-[10px] flex items-center gap-1 backdrop-blur-sm shadow-lg">
+                                  <span className="material-symbols-outlined text-[10px]">done_all</span> COLLECTED
                                 </span>
                               )}
 

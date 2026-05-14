@@ -82,7 +82,7 @@ function SearchResults() {
                   {sticker.image ? (
                     <img src={sticker.image} alt={sticker.name} className={`w-full h-full object-cover ${isMissing ? 'opacity-20' : ''}`} />
                   ) : (
-                    <span className={`font-display-lg ${isMissing ? 'text-on-surface/20' : 'text-on-surface/40'}`}>
+                    <span className={`font-display-lg ${isMissing ? 'text-on-surface/20' : 'text-on-surface/90 font-bold drop-shadow-sm'}`}>
                       {sticker.code}
                     </span>
                   )}
@@ -107,6 +107,12 @@ function SearchResults() {
                   {isRepeated && (
                     <span className="bg-tertiary text-on-tertiary px-2 py-0.5 rounded font-label-sm text-[10px] shadow-lg">
                       x{sticker.quantityOwned - 1} REPETIDA
+                    </span>
+                  )}
+
+                  {!isMissing && (
+                    <span className="bg-secondary/80 text-on-secondary px-2 py-0.5 rounded font-label-sm text-[10px] flex items-center gap-1 backdrop-blur-sm shadow-lg">
+                      <span className="material-symbols-outlined text-[10px]">done_all</span> COLLECTED
                     </span>
                   )}
 
