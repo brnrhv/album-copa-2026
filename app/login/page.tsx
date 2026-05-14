@@ -6,7 +6,7 @@ import { createClient } from "../lib/supabase/client"
 import Link from "next/link"
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
+  const [identifier, setIdentifier] = useState("") // Can be Username or Email
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -18,17 +18,47 @@ export default function LoginPage() {
     setLoading(true)
     setError(null)
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    try {
+      let emailToUse = identifier.trim()
 
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-    } else {
+      // If the identifier does not contain '@', treat it as a username
+      if (!emailToUse.includes("@")) {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('username', emailToUse.toLowerCase())
+          .maybeSingle()
+
+        if (profileError) {
+          console.error("Profile lookup error:", profileError)
+          throw new Error("Unable to search for username. Please try using your email instead.")
+        }
+
+        if (!profile || !profile.email) {
+          throw new Error("Username not found. Double check the spelling or log in with your email.")
+        }
+
+        emailToUse = profile.email
+      }
+
+      // Attempt login with the resolved email
+      const { error: loginError } = await supabase.auth.signInWithPassword({
+        email: emailToUse,
+        password,
+      })
+
+      if (loginError) {
+        if (loginError.message.toLowerCase().includes("email not confirmed")) {
+          throw new Error("Please confirm your email address. We sent you an activation link when you registered.")
+        }
+        throw loginError
+      }
+
       router.push("/")
       router.refresh()
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred. Please try again.")
+      setLoading(false)
     }
   }
 
@@ -46,20 +76,20 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="w-full flex flex-col gap-4">
           {error && (
-            <div className="bg-error/10 text-error p-3 rounded-lg text-sm text-center">
+            <div className="bg-error/10 text-error p-3 rounded-lg text-sm text-center whitespace-pre-line">
               {error}
             </div>
           )}
 
           <div>
-            <label className="block font-label-md text-on-surface mb-1">Email</label>
+            <label className="block font-label-md text-on-surface mb-1">Username or Email</label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
               required
               className="w-full bg-surface-container border border-outline rounded-lg px-4 py-3 text-on-surface focus:border-primary focus:outline-none transition-colors"
-              placeholder="you@example.com"
+              placeholder="e.g. user123 or you@example.com"
             />
           </div>
 
@@ -94,3 +124,4 @@ export default function LoginPage() {
     </div>
   )
 }
+

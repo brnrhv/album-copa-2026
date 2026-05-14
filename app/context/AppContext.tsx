@@ -10,6 +10,7 @@ export interface UserProfile {
   email: string;
   full_name: string;
   avatar_url: string | null;
+  username: string;
 }
 
 interface AppState {
@@ -188,6 +189,7 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
     const { error } = await supabase.from('profiles').upsert({
       id: user.id,
       email: user.email,
+      username: state.profile?.username,
       full_name: updates.full_name,
       avatar_url: updates.avatar_url,
       updated_at: new Date().toISOString()
