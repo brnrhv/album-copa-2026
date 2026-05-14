@@ -1,43 +1,43 @@
 "use client";
-
+ 
 import { useAppContext } from "../context/AppContext";
 import { useState } from "react";
-
+ 
 export default function MissingPage() {
   const { stickers, isHydrated } = useAppContext();
   const [copied, setCopied] = useState(false);
-
+ 
   if (!isHydrated) return <div className="animate-pulse h-screen bg-surface"></div>;
-
+ 
   const missingStickers = stickers.filter(s => s.quantityOwned === 0);
   const totalMissing = missingStickers.length;
-
+ 
   // Group by team
   const grouped: Record<string, typeof missingStickers> = {};
   missingStickers.forEach(s => {
     if (!grouped[s.team]) grouped[s.team] = [];
     grouped[s.team].push(s);
   });
-
+ 
   const handleExport = () => {
-    let text = "Stickers I need:\n\n";
+    let text = "Figurinhas que me Faltam:\n\n";
     Object.keys(grouped).forEach(team => {
       text += `${team}:\n`;
       const codes = grouped[team].map(s => s.code);
       text += codes.join(", ") + "\n\n";
     });
-
+ 
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
+ 
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="font-display-lg text-display-lg text-on-surface mb-2">Missing Stickers</h1>
-          <p className="font-body-md text-on-surface-variant">You need {totalMissing} more stickers to complete the album.</p>
+          <h1 className="font-display-lg text-display-lg text-on-surface mb-2">Faltando no Álbum</h1>
+          <p className="font-body-md text-on-surface-variant">Faltam {totalMissing} figurinhas para você completar o álbum!</p>
         </div>
         <button 
           onClick={handleExport}
@@ -45,15 +45,15 @@ export default function MissingPage() {
           className="flex items-center gap-2 bg-surface-container-high border border-outline-variant hover:bg-surface-container-highest text-on-surface px-6 py-3 rounded-lg font-label-sm transition-colors disabled:opacity-50"
         >
           <span className="material-symbols-outlined">{copied ? "check" : "content_copy"}</span>
-          {copied ? "COPIED TO CLIPBOARD" : "EXPORT AS TEXT"}
+          {copied ? "COPIADO!" : "COPIAR LISTA"}
         </button>
       </div>
-
+ 
       {missingStickers.length === 0 ? (
         <div className="glass-card p-12 text-center rounded-xl">
           <span className="material-symbols-outlined text-6xl text-secondary mb-4">emoji_events</span>
-          <h3 className="font-headline-md text-on-surface">Album Complete!</h3>
-          <p className="text-on-primary-container mt-2">You have collected all stickers.</p>
+          <h3 className="font-headline-md text-on-surface">Álbum Completado! 🎉</h3>
+          <p className="text-on-primary-container mt-2">Parabéns! Você conseguiu reunir todas as figurinhas.</p>
         </div>
       ) : (
         <div className="space-y-8">
@@ -62,7 +62,7 @@ export default function MissingPage() {
               <h2 className="font-headline-md text-on-surface mb-4 flex items-center justify-between">
                 {team}
                 <span className="font-label-sm bg-error-container text-error px-3 py-1 rounded-full text-sm">
-                  {list.length} MISSING
+                  {list.length} FALTANDO
                 </span>
               </h2>
               <div className="flex flex-wrap gap-3">

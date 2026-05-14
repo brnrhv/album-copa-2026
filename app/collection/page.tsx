@@ -180,7 +180,7 @@ export default function CollectionPage() {
                               isMissing ? "bg-black/60" : "bg-secondary-container/90"
                             }`}>
                               <p className={`font-label-sm text-label-sm truncate ${isMissing ? "text-white" : "text-white font-bold"}`}>
-                                {sticker.name || "Unknown Player"}
+                                {sticker.name || sticker.code}
                               </p>
                               <p className={`font-label-sm text-[10px] ${
                                 isMissing ? (sticker.category === 'Badge' ? 'text-tertiary' : 'text-on-primary-container') : "text-secondary-fixed-dim"
