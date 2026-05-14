@@ -61,7 +61,7 @@ export default function RegisterPage() {
     }
   }
 
-  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ""
+  const siteKey = "0x4AAAAAADPMaXnB1zUazOwr"
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-surface">
