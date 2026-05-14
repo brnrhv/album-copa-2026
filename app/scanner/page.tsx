@@ -16,6 +16,50 @@ function getTeamFlag(teamCode: string): string {
   return flags[teamCode] || '⚽';
 }
 
+const cropTopRightCorner = (file: File): Promise<Blob | File> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(file); // Fallback to original file
+        URL.revokeObjectURL(objectUrl);
+        return;
+      }
+      
+      // The code is generally in the top-right 40% of height and 55% of width
+      const cropW = img.width * 0.55;
+      const cropH = img.height * 0.40;
+      const startX = img.width * 0.45;
+      const startY = 0;
+      
+      canvas.width = cropW;
+      canvas.height = cropH;
+      
+      ctx.drawImage(img, startX, startY, cropW, cropH, 0, 0, cropW, cropH);
+      
+      canvas.toBlob((blob) => {
+        URL.revokeObjectURL(objectUrl);
+        if (blob) {
+          resolve(blob);
+        } else {
+          resolve(file);
+        }
+      }, 'image/jpeg', 0.92);
+    };
+    
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(file);
+    };
+    
+    img.src = objectUrl;
+  });
+};
+
 export default function ScannerPage() {
   const { stickers, updateSticker, isHydrated, user } = useAppContext();
 
@@ -60,7 +104,66 @@ export default function ScannerPage() {
     setMatchedSticker(found || null);
   }, [ocrCode, stickers]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const analyzeOcrText = (text: string): string => {
+    const rawWords = text.toUpperCase().split(/[^A-Z0-9]+/);
+    const cleanFull = text.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    
+    const toFuzzy = (str: string) => {
+      return str
+        .replace(/I/g, '1').replace(/L/g, '1')
+        .replace(/O/g, '0')
+        .replace(/B/g, '8')
+        .replace(/S/g, '5')
+        .replace(/G/g, '6')
+        .replace(/Z/g, '2');
+    };
+
+    // STEP A: Direct EXACT lookup in parsed words
+    for (const word of rawWords) {
+      if (word.length < 3) continue;
+      let normalizedWord = word;
+      const parts = word.match(/^([A-Z]+)(\d+)$/);
+      if (parts) {
+        let num = parts[2];
+        if (num.length === 1) num = '0' + num;
+        normalizedWord = parts[1] + num;
+      }
+      const match = stickers.find(s => s.id === normalizedWord || s.code === normalizedWord);
+      if (match) return match.id;
+    }
+
+    // STEP B: Check if entire clean block contains ANY exact valid ID
+    for (const s of stickers) {
+      if (cleanFull.includes(s.id) || cleanFull.includes(s.code)) {
+        return s.id;
+      }
+    }
+
+    // STEP C: Advanced FUZZY logic
+    const fuzzyFull = toFuzzy(cleanFull);
+    for (const s of stickers) {
+      const fuzzyId = toFuzzy(s.id);
+      if (fuzzyFull.includes(fuzzyId)) {
+        return s.id;
+      }
+    }
+
+    // STEP D: Fallback Regex
+    const match = cleanFull.match(/[A-Z]{2,4}\d{1,2}/);
+    if (match) {
+      const rawMatch = match[0];
+      const splitMatch = rawMatch.match(/^([A-Z]+)(\d+)$/);
+      if (splitMatch) {
+        const prefix = splitMatch[1];
+        let num = splitMatch[2];
+        if (num.length === 1) num = '0' + num;
+        return prefix + num;
+      }
+    }
+    return "";
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -75,110 +178,61 @@ export default function ScannerPage() {
     // Create preview
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
-    
     setIsScanning(true);
 
-    Tesseract.recognize(
-      file,
-      'eng',
-      { 
-        logger: m => {
-          if (m.status === 'recognizing text') {
-            setOcrStatus("Lendo Figurinha...");
-            setScanProgress(Math.round(m.progress * 100));
-          } else {
-            setOcrStatus("Preparando IA...");
-          }
-        } 
-      }
-    ).then(({ data: { text } }) => {
-      // 1. Split into words and cleanup
-      const rawWords = text.toUpperCase().split(/[^A-Z0-9]+/);
-      const cleanFull = text.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    try {
+      // Stage 1: Focus on Top-Right corner where sticker code usually sits
+      setOcrStatus("Focando Código...");
+      const croppedImage = await cropTopRightCorner(file);
       
-      // Get valid stickers from context
-      const validStickers = stickers;
-      
-      // Fuzzy character normalizer for common OCR confusion
-      const toFuzzy = (str: string) => {
-        return str
-          .replace(/I/g, '1').replace(/L/g, '1')
-          .replace(/O/g, '0')
-          .replace(/B/g, '8')
-          .replace(/S/g, '5')
-          .replace(/G/g, '6')
-          .replace(/Z/g, '2');
-      };
-
-      let codeFound = "";
-
-      // STEP A: Direct EXACT lookup in parsed words
-      for (const word of rawWords) {
-        if (word.length < 3) continue;
-        // Normalize code if needed (e.g., BRA7 -> BRA07)
-        let normalizedWord = word;
-        const parts = word.match(/^([A-Z]+)(\d+)$/);
-        if (parts) {
-          let num = parts[2];
-          if (num.length === 1) num = '0' + num;
-          normalizedWord = parts[1] + num;
+      setOcrStatus("Lendo Canto Superior...");
+      const cropResult = await Tesseract.recognize(
+        croppedImage,
+        'eng',
+        { 
+          logger: m => {
+            if (m.status === 'recognizing text') {
+              setScanProgress(Math.round(m.progress * 50));
+            }
+          } 
         }
+      );
 
-        const match = validStickers.find(s => s.id === normalizedWord || s.code === normalizedWord);
-        if (match) {
-          codeFound = match.id;
-          break;
-        }
-      }
+      let detectedCode = analyzeOcrText(cropResult.data.text);
 
-      // STEP B: Check if entire clean block contains ANY exact valid ID
-      if (!codeFound) {
-        for (const s of validStickers) {
-          if (cleanFull.includes(s.id) || cleanFull.includes(s.code)) {
-            codeFound = s.id;
-            break;
+      // Stage 2: If nothing found in the corner, perform deep-scan on the whole image
+      if (!detectedCode) {
+        setOcrStatus("Varrendo Imagem Inteira...");
+        setScanProgress(50);
+        
+        const fullResult = await Tesseract.recognize(
+          file,
+          'eng',
+          { 
+            logger: m => {
+              if (m.status === 'recognizing text') {
+                setScanProgress(50 + Math.round(m.progress * 50));
+              }
+            } 
           }
-        }
+        );
+        detectedCode = analyzeOcrText(fullResult.data.text);
+      } else {
+        setScanProgress(100);
       }
 
-      // STEP C: Advanced FUZZY logic (e.g. C1V19 instead of CIV19)
-      if (!codeFound) {
-        const fuzzyFull = toFuzzy(cleanFull);
-        for (const s of validStickers) {
-          const fuzzyId = toFuzzy(s.id);
-          if (fuzzyFull.includes(fuzzyId)) {
-            codeFound = s.id;
-            break;
-          }
-        }
-      }
-
-      // STEP D: If still not found, fall back to the old Regex on raw text
-      if (!codeFound) {
-        const match = cleanFull.match(/[A-Z]{2,4}\d{1,2}/);
-        if (match) {
-          const rawMatch = match[0];
-          const splitMatch = rawMatch.match(/^([A-Z]+)(\d+)$/);
-          if (splitMatch) {
-            const prefix = splitMatch[1];
-            let num = splitMatch[2];
-            if (num.length === 1) num = '0' + num;
-            codeFound = prefix + num;
-          }
-        }
-      }
-      
-      setOcrCode(codeFound);
+      setOcrCode(detectedCode);
       setIsScanning(false);
       setScanComplete(true);
       setTimeout(() => {
         document.getElementById("ocrInput")?.focus();
       }, 300);
-    }).catch(err => {
-      console.error("OCR Failed:", err);
+
+    } catch (err) {
+      console.error("OCR Pipeline error:", err);
       setIsScanning(false);
       setScanComplete(true);
-    });
+    }
   };
 
   const handleTriggerUpload = () => {
