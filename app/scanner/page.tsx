@@ -25,7 +25,7 @@ function getTeamFlag(teamCode: string): string {
 }
 
 export default function ScannerPage() {
-  const { stickers, updateSticker, isHydrated, user } = useAppContext();
+  const { stickers, updateSticker, bulkAddStickers, isHydrated, user } = useAppContext();
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
@@ -265,16 +265,8 @@ export default function ScannerPage() {
     try {
       setIsAdding(true);
       
-      // Save each sticker sequentially or concurrently via updateSticker
-      await Promise.all(
-        validSelection.map(async (item) => {
-          if (!item.matchedSticker) return;
-          const currentQty = item.matchedSticker.quantityOwned || 0;
-          await updateSticker(item.matchedSticker.id, {
-            quantityOwned: currentQty + 1
-          });
-        })
-      );
+      const codesToAdd = validSelection.map(item => item.matchedSticker!.id);
+      await bulkAddStickers(codesToAdd);
 
       setAddSuccess(true);
       setTimeout(() => {
@@ -406,11 +398,20 @@ export default function ScannerPage() {
             )}
           </div>
 
-          {/* Tip banner */}
-          <div className="p-4 bg-surface-container border border-outline-variant/40 rounded-2xl flex gap-3">
-            <span className="material-symbols-outlined text-secondary mt-0.5">lightbulb</span>
-            <div className="text-xs text-on-surface-variant/90 leading-relaxed">
-              <strong>A IA do Gemini é inteligente:</strong> Ela lê códigos inclinados, pequenos e com brilho. Você também pode colocar várias figurinhas na mesma foto!
+          {/* Tip banners */}
+          <div className="flex flex-col gap-3">
+            <div className="p-4 bg-surface-container border border-outline-variant/40 rounded-2xl flex gap-3">
+              <span className="material-symbols-outlined text-secondary mt-0.5">lightbulb</span>
+              <div className="text-xs text-on-surface-variant/90 leading-relaxed">
+                <strong>A IA do Gemini é inteligente:</strong> Ela lê códigos inclinados, pequenos e com brilho. Você também pode colocar várias figurinhas na mesma foto!
+              </div>
+            </div>
+            
+            <div className="p-4 bg-error/10 border border-error/30 rounded-2xl flex gap-3">
+              <span className="material-symbols-outlined text-error mt-0.5">warning</span>
+              <div className="text-xs text-error/90 leading-relaxed">
+                <strong>Atenção:</strong> Não coloque figurinhas repetidas na mesma foto. A Inteligência Artificial pode agrupar as iguais e registrar apenas uma unidade.
+              </div>
             </div>
           </div>
         </div>

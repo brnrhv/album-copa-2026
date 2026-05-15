@@ -12,10 +12,14 @@ export default function CollectionPage() {
   const [activeTeam, setActiveTeam] = useState<string>("");
   const [selectedSticker, setSelectedSticker] = useState<Sticker | null>(null);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [sortOrder, setSortOrder] = useState<'album' | 'alpha'>('album');
 
   if (!isHydrated) return <div className="animate-pulse h-screen bg-surface"></div>;
 
-  const TEAMS = Array.from(new Set(stickers.map(s => s.team)));
+  let TEAMS = Array.from(new Set(stickers.map(s => s.team)));
+  if (sortOrder === 'alpha') {
+    TEAMS = [...TEAMS].sort((a, b) => a.localeCompare(b));
+  }
 
   return (
     <div className="flex flex-col gap-8">
@@ -24,13 +28,26 @@ export default function CollectionPage() {
           <h1 className="font-display-lg text-display-lg text-on-surface mb-2">Minha Coleção</h1>
           <p className="font-body-md text-on-surface-variant">Navegue pelas suas figurinhas, registre repetidas e complete o seu álbum físico.</p>
         </div>
-        <button 
-          onClick={() => setIsBulkModalOpen(true)}
-          className="self-start md:self-auto flex items-center gap-2 px-5 py-3 bg-secondary text-on-secondary font-bold rounded-xl transition-all hover:opacity-90 active:scale-[0.98] shadow-lg shadow-secondary/20 glow-blue flex-shrink-0 font-label-md"
-        >
-          <span className="material-symbols-outlined">playlist_add</span>
-          Adicionar em Massa
-        </button>
+        <div className="flex items-center gap-3 self-start md:self-auto flex-wrap">
+          <div className="relative">
+            <select 
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as 'album' | 'alpha')}
+              className="appearance-none px-4 py-3 pr-10 bg-surface-container border border-outline-variant text-on-surface rounded-xl text-sm font-semibold outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-colors cursor-pointer"
+            >
+              <option value="album">Ordem do Álbum</option>
+              <option value="alpha">Ordem Alfabética</option>
+            </select>
+            <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+          </div>
+          <button 
+            onClick={() => setIsBulkModalOpen(true)}
+            className="flex items-center gap-2 px-5 py-3 bg-secondary text-on-secondary font-bold rounded-xl transition-all hover:opacity-90 active:scale-[0.98] shadow-lg shadow-secondary/20 glow-blue flex-shrink-0 font-label-md"
+          >
+            <span className="material-symbols-outlined">playlist_add</span>
+            Adicionar em Massa
+          </button>
+        </div>
       </div>
 
       <BulkAddModal 
@@ -174,6 +191,9 @@ export default function CollectionPage() {
                                 sticker.edition === 'gold' ? 'bg-gradient-to-tr from-[#FFD700] via-[#FFA500] to-transparent' : ''
                               }`}></div>
                             )}
+                            <div className="absolute top-2 left-2 z-20 pointer-events-none">
+                              {renderTeamFlag(sticker.team, "w-5 h-4 rounded-sm shadow-sm object-cover")}
+                            </div>
                             <div className="w-full h-full bg-surface-container-low flex flex-col items-center justify-center p-4 relative z-10">
                               {sticker.image ? (
                                 <img src={sticker.image} alt={sticker.name} className={`w-full h-full object-cover ${isMissing ? 'opacity-20' : ''}`} />

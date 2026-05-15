@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useAppContext } from "../../context/AppContext";
+import { renderTeamFlag } from "../../utils/flags";
 
 export default function RecentFinds() {
   const { stickers, isHydrated } = useAppContext();
@@ -23,7 +24,10 @@ export default function RecentFinds() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {ownedStickers.map((sticker) => (
           <div key={sticker.id} className="relative aspect-[3/4] rounded-lg overflow-hidden border border-outline-variant hover:scale-105 transition-transform duration-300 group">
-            <div className="w-full h-full bg-surface-container flex items-center justify-center overflow-hidden">
+            <div className="absolute top-2 left-2 z-20 pointer-events-none">
+              {renderTeamFlag(sticker.team, "w-4 h-3 rounded-[2px] shadow-sm object-cover")}
+            </div>
+            <div className="w-full h-full bg-surface-container flex items-center justify-center overflow-hidden relative z-10">
               {sticker.image ? (
                 <img src={sticker.image} alt={sticker.name} className="w-full h-full object-cover" />
               ) : (

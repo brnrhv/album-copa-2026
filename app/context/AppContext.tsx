@@ -82,7 +82,16 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
         };
       });
 
-      setState({ stickers: mergedStickers, expenses: expenses as Expense[], profile });
+      const mappedExpenses: Expense[] = expenses.map((e: any) => ({
+        id: e.id,
+        date: e.date,
+        description: e.description,
+        amountSpent: Number(e.amount_spent) || 0,
+        packsBought: Number(e.packs_bought) || 0,
+        notes: e.notes
+      }));
+
+      setState({ stickers: mergedStickers, expenses: mappedExpenses, profile });
       setIsHydrated(true);
     };
 
@@ -237,8 +246,8 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
       id: data.id,
       date: data.date,
       description: data.description,
-      amountSpent: Number(data.amount_spent),
-      packsBought: data.packs_bought,
+      amountSpent: Number(data.amount_spent) || 0,
+      packsBought: Number(data.packs_bought) || 0,
       notes: data.notes
     };
 

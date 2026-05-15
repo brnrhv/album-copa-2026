@@ -40,18 +40,18 @@ export async function POST(request: NextRequest) {
 
     const prompt = `
 You are a specialized assistant that identifies football sticker codes (like FIFA World Cup / Panini album).
-Analyze the uploaded image and identify ALL visible unique sticker codes.
-Focus closely on the top corners (usually top-right) and borders of the sticker where the code normally is written.
+Analyze the uploaded image and identify ALL visible sticker codes.
+CRITICAL INSTRUCTION: Count EVERY SINGLE physical sticker in the image. If there are 6 stickers in the photo, your array MUST contain 6 items. DO NOT deduplicate. If you see two distinct physical stickers that both say the same code, you MUST include the code multiple times.
 
 You must strictly return ONLY a valid JSON object matching this schema:
 {
-  "codes": ["BRA01", "ARG05"],
+  "codes": ["BRA01", "ARG05", "BRA01"],
   "rawText": "summary of visible text read from the card",
   "confidence": "high" | "medium" | "low"
 }
 
 Guidelines for extraction:
-1. Find all instances of sticker codes. These consist of 2 to 4 letters followed by 1 to 2 digits (e.g. BRA01, FWC10, MEX05, CIV19, CC04).
+1. Find all instances of sticker codes. These consist of 2 to 4 letters followed by 1 to 2 digits (e.g. BRA01, FWC10, MEX05, CIV19, CC04). CRITICAL: The length of the "codes" array MUST exactly match the number of physical stickers visible in the image.
 2. Normalize ALL detected codes:
    - Must be upper case (e.g., "bra" -> "BRA").
    - Remove all whitespace.
