@@ -3,15 +3,16 @@
 import { useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import StickerModal from "../components/StickerModal";
-import BulkAddModal from "../components/BulkAddModal";
+import BulkActionModal from "../components/BulkActionModal";
 import { Sticker } from "../types";
 import { renderTeamFlag } from "../utils/flags";
 
 export default function CollectionPage() {
-  const { stickers, isHydrated, updateSticker, bulkAddStickers } = useAppContext();
+  const { stickers, isHydrated, updateSticker, bulkAddStickers, bulkRemoveStickers } = useAppContext();
   const [activeTeam, setActiveTeam] = useState<string>("");
   const [selectedSticker, setSelectedSticker] = useState<Sticker | null>(null);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [bulkModalMode, setBulkModalMode] = useState<'add' | 'remove'>('add');
   const [sortOrder, setSortOrder] = useState<'album' | 'alpha'>('album');
 
   if (!isHydrated) return <div className="animate-pulse h-screen bg-surface"></div>;
@@ -41,19 +42,28 @@ export default function CollectionPage() {
             <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
           </div>
           <button 
-            onClick={() => setIsBulkModalOpen(true)}
-            className="flex items-center gap-2 px-5 py-3 bg-secondary text-on-secondary font-bold rounded-xl transition-all hover:opacity-90 active:scale-[0.98] shadow-lg shadow-secondary/20 glow-blue flex-shrink-0 font-label-md"
+            onClick={() => { setBulkModalMode('add'); setIsBulkModalOpen(true); }}
+            className="flex items-center gap-2 px-5 py-3 bg-secondary text-on-secondary font-bold rounded-xl transition-all hover:opacity-90 active:scale-[0.98] shadow-lg shadow-secondary/20 glow-blue flex-shrink-0 font-label-md cursor-pointer"
           >
             <span className="material-symbols-outlined">playlist_add</span>
             Adicionar em Massa
           </button>
+          <button 
+            onClick={() => { setBulkModalMode('remove'); setIsBulkModalOpen(true); }}
+            className="flex items-center gap-2 px-5 py-3 bg-error text-on-error font-bold rounded-xl transition-all hover:opacity-90 active:scale-[0.98] shadow-lg shadow-error/20 flex-shrink-0 font-label-md cursor-pointer"
+          >
+            <span className="material-symbols-outlined">playlist_remove</span>
+            Remover em Massa
+          </button>
         </div>
       </div>
 
-      <BulkAddModal 
+      <BulkActionModal 
         isOpen={isBulkModalOpen}
         onClose={() => setIsBulkModalOpen(false)}
-        onSave={bulkAddStickers}
+        onAdd={bulkAddStickers}
+        onRemove={bulkRemoveStickers}
+        initialMode={bulkModalMode}
       />
 
       {activeTeam === "" ? (

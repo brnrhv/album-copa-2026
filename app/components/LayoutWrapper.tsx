@@ -4,13 +4,13 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
-import BulkAddModal from "./BulkAddModal";
+import BulkActionModal from "./BulkActionModal";
 import { useAppContext } from "../context/AppContext";
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
-  const { bulkAddStickers } = useAppContext();
+  const { bulkAddStickers, bulkRemoveStickers } = useAppContext();
   const pathname = usePathname();
   const isAuthPage = pathname === "/login" || pathname === "/register";
 
@@ -36,10 +36,12 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
         <span className="material-symbols-outlined text-2xl sm:text-3xl">playlist_add</span>
       </button>
 
-      <BulkAddModal 
+      <BulkActionModal 
         isOpen={isBulkModalOpen}
         onClose={() => setIsBulkModalOpen(false)}
-        onSave={bulkAddStickers}
+        onAdd={bulkAddStickers}
+        onRemove={bulkRemoveStickers}
+        initialMode="add"
       />
     </>
   );

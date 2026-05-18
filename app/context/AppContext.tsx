@@ -27,6 +27,7 @@ interface AppContextType extends AppState {
   deleteExpense: (id: string) => void;
   updateProfile: (updates: { full_name?: string; avatar_url?: string | null; hide_album?: boolean; hide_trades?: boolean }) => Promise<void>;
   bulkAddStickers: (rawCodes: string[]) => Promise<{ success: number; notFound: string[] }>;
+  bulkRemoveStickers: (rawCodes: string[]) => Promise<{ success: number; notFound: string[] }>;
   isHydrated: boolean;
   user: any;
   signOut: () => Promise<void>;
@@ -225,6 +226,92 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
     return { success: updatesToApply.length, notFound: notFoundCodes };
   };
 
+  const bulkRemoveStickers = async (rawCodes: string[]): Promise<{ success: number; notFound: string[] }> => {
+    if (!user) return { success: 0, notFound: [] };
+
+    const normalizeCode = (raw: string): string => {
+      let cleaned = raw.replace(/\s+/g, '').toUpperCase();
+      const match = cleaned.match(/^([A-Z]+)(\d+)$/);
+      if (match) {
+        const prefix = match[1];
+        let num = match[2];
+        if (num.length === 1) {
+          num = '0' + num;
+        }
+        return prefix + num;
+      }
+      return cleaned;
+    };
+
+    const notFoundCodes: string[] = [];
+    const updatedStickersMap = new Map<string, Partial<Sticker>>();
+
+    // Process each raw code
+    for (const raw of rawCodes) {
+      const cleaned = raw.trim();
+      if (!cleaned) continue;
+      const normalized = normalizeCode(cleaned);
+      
+      // Find original sticker
+      const sticker = state.stickers.find(s => s.id === normalized || s.code === normalized);
+      if (!sticker) {
+        notFoundCodes.push(cleaned);
+        continue;
+      }
+
+      // If sticker already in this update batch, base next decrement on that
+      const currentBatchState = updatedStickersMap.get(sticker.id) || {};
+      const baseQuantity = currentBatchState.quantityOwned !== undefined 
+        ? currentBatchState.quantityOwned 
+        : sticker.quantityOwned;
+
+      updatedStickersMap.set(sticker.id, {
+        ...currentBatchState,
+        quantityOwned: Math.max(0, baseQuantity - 1),
+      });
+    }
+
+    if (updatedStickersMap.size === 0) {
+      return { success: 0, notFound: notFoundCodes };
+    }
+
+    const updatesToApply: { id: string; updates: Partial<Sticker> }[] = [];
+    const rowsToUpsert: any[] = [];
+
+    updatedStickersMap.forEach((updates, stickerId) => {
+      const original = state.stickers.find(s => s.id === stickerId)!;
+      const finalUpdates = {
+        quantityOwned: updates.quantityOwned!
+      };
+      updatesToApply.push({ id: stickerId, updates: finalUpdates });
+      rowsToUpsert.push({
+        user_id: user.id,
+        code: stickerId,
+        quantity: finalUpdates.quantityOwned,
+        edition: original.edition || 'normal',
+        notes: original.notes || ''
+      });
+    });
+
+    // Optimistic UI update
+    setState(prev => {
+      const newStickers = prev.stickers.map(s => {
+        const match = updatesToApply.find(u => u.id === s.id);
+        return match ? { ...s, ...match.updates } : s;
+      });
+      return { ...prev, stickers: newStickers };
+    });
+
+    // Batch upsert to Supabase
+    const { error } = await supabase.from('user_stickers').upsert(rowsToUpsert, { onConflict: 'user_id,code' });
+    
+    if (error) {
+      console.error("Error bulk updating stickers:", error);
+    }
+
+    return { success: updatesToApply.length, notFound: notFoundCodes };
+  };
+
   const addExpense = async (expenseData: Omit<Expense, "id">) => {
     if (!user) return;
 
@@ -308,7 +395,7 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
   };
 
   return (
-    <AppContext.Provider value={{ ...state, updateSticker, bulkAddStickers, addExpense, deleteExpense, updateProfile, isHydrated, user, signOut }}>
+    <AppContext.Provider value={{ ...state, updateSticker, bulkAddStickers, bulkRemoveStickers, addExpense, deleteExpense, updateProfile, isHydrated, user, signOut }}>
       {children}
     </AppContext.Provider>
   );
