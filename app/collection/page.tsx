@@ -14,6 +14,7 @@ export default function CollectionPage() {
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [bulkModalMode, setBulkModalMode] = useState<'add' | 'remove'>('add');
   const [sortOrder, setSortOrder] = useState<'album' | 'alpha'>('album');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   if (!isHydrated) return <div className="animate-pulse h-screen bg-surface"></div>;
 
@@ -41,20 +42,47 @@ export default function CollectionPage() {
             </select>
             <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
           </div>
-          <button 
-            onClick={() => { setBulkModalMode('add'); setIsBulkModalOpen(true); }}
-            className="flex items-center gap-2 px-5 py-3 bg-secondary text-on-secondary font-bold rounded-xl transition-all hover:opacity-90 active:scale-[0.98] shadow-lg shadow-secondary/20 glow-blue flex-shrink-0 font-label-md cursor-pointer"
-          >
-            <span className="material-symbols-outlined">playlist_add</span>
-            Adicionar em Massa
-          </button>
-          <button 
-            onClick={() => { setBulkModalMode('remove'); setIsBulkModalOpen(true); }}
-            className="flex items-center gap-2 px-5 py-3 bg-error text-on-error font-bold rounded-xl transition-all hover:opacity-90 active:scale-[0.98] shadow-lg shadow-error/20 flex-shrink-0 font-label-md cursor-pointer"
-          >
-            <span className="material-symbols-outlined">playlist_remove</span>
-            Remover em Massa
-          </button>
+
+          <div className="relative">
+            <button 
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="flex items-center gap-2 px-5 py-3 bg-secondary text-on-secondary font-bold rounded-xl transition-all hover:opacity-90 active:scale-[0.98] shadow-lg shadow-secondary/20 glow-blue flex-shrink-0 font-label-md cursor-pointer"
+            >
+              <span className="material-symbols-outlined">layers</span>
+              Ações em Massa
+              <span className="material-symbols-outlined text-sm transition-transform duration-200" style={{ transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>expand_more</span>
+            </button>
+            
+            {isDropdownOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)}></div>
+                <div className="absolute right-0 mt-2 w-56 bg-surface-container border border-outline-variant rounded-xl shadow-xl overflow-hidden z-50 animate-fade-in">
+                  <button 
+                    onClick={() => { 
+                      setBulkModalMode('add'); 
+                      setIsBulkModalOpen(true); 
+                      setIsDropdownOpen(false); 
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-container-high text-on-surface text-left text-sm font-semibold transition-colors cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-secondary">playlist_add</span>
+                    Adicionar em Massa
+                  </button>
+                  <button 
+                    onClick={() => { 
+                      setBulkModalMode('remove'); 
+                      setIsBulkModalOpen(true); 
+                      setIsDropdownOpen(false); 
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-container-high text-on-surface text-left text-sm font-semibold border-t border-outline-variant/30 transition-colors cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-error">playlist_remove</span>
+                    <span className="text-error">Remover em Massa</span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
