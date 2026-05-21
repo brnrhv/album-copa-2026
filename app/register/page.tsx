@@ -1,10 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "../lib/supabase/client"
 import Link from "next/link"
-import { Turnstile } from "@marsidev/react-turnstile"
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile"
 
 export default function RegisterPage() {
   const [username, setUsername] = useState("")
@@ -14,6 +14,7 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const turnstileRef = useRef<TurnstileInstance>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -54,6 +55,8 @@ export default function RegisterPage() {
 
     if (signUpError) {
       setError(signUpError.message)
+      setCaptchaToken(null)
+      turnstileRef.current?.reset()
       setLoading(false)
     } else {
       setSuccess(true)
@@ -143,6 +146,7 @@ export default function RegisterPage() {
             <div className="my-2 flex justify-center">
               {siteKey ? (
                 <Turnstile
+                  ref={turnstileRef}
                   siteKey={siteKey}
                   onSuccess={(token) => setCaptchaToken(token)}
                   onError={() => setError("Failed to load bot protection. Please refresh.")}
