@@ -25,8 +25,9 @@ function getTeamFlag(teamCode: string): string {
 }
 
 export default function ScannerPage() {
-  const { stickers, updateSticker, bulkAddStickers, isHydrated, user } = useAppContext();
+  const { stickers, updateSticker, bulkAddStickers, bulkRemoveStickers, isHydrated, user } = useAppContext();
 
+  const [scannerMode, setScannerMode] = useState<'add' | 'remove'>('add');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [ocrStatus, setOcrStatus] = useState("");
@@ -266,7 +267,12 @@ export default function ScannerPage() {
       setIsAdding(true);
       
       const codesToAdd = validSelection.map(item => item.matchedSticker!.id);
-      await bulkAddStickers(codesToAdd);
+      
+      if (scannerMode === 'add') {
+        await bulkAddStickers(codesToAdd);
+      } else {
+        await bulkRemoveStickers(codesToAdd);
+      }
 
       setAddSuccess(true);
       setTimeout(() => {
@@ -331,6 +337,31 @@ export default function ScannerPage() {
         
         {/* Left Column: Picture & Camera Capture (5 cols) */}
         <div className="lg:col-span-5 flex flex-col gap-4 sticky top-24">
+          <div className="flex bg-surface-container rounded-xl p-1">
+            <button
+              onClick={() => setScannerMode('add')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg font-bold text-sm transition-all cursor-pointer ${
+                scannerMode === 'add'
+                  ? 'bg-secondary text-on-secondary shadow-md'
+                  : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest'
+              }`}
+            >
+              <span className="material-symbols-outlined text-sm">playlist_add</span>
+              Adicionar
+            </button>
+            <button
+              onClick={() => setScannerMode('remove')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg font-bold text-sm transition-all cursor-pointer ${
+                scannerMode === 'remove'
+                  ? 'bg-error text-onError shadow-md'
+                  : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest'
+              }`}
+            >
+              <span className="material-symbols-outlined text-sm">playlist_remove</span>
+              Remover
+            </button>
+          </div>
+
           <input 
             type="file" 
             accept="image/*"
@@ -427,7 +458,7 @@ export default function ScannerPage() {
               <div className="flex items-center gap-3">
                 <span className="material-symbols-outlined text-secondary text-2xl">playlist_add_check</span>
                 <div>
-                  <h2 className="font-bold text-lg text-on-surface font-title-lg tracking-tight">Confirmar Figurinhas</h2>
+                  <h2 className="font-bold text-lg text-on-surface font-title-lg tracking-tight">Confirmar Figurinhas para {scannerMode === 'add' ? 'Adicionar' : 'Remover'}</h2>
                   <p className="text-xs text-on-surface-variant font-body-sm mt-0.5">Valide o que a IA detectou antes de salvar</p>
                 </div>
               </div>
@@ -553,14 +584,14 @@ export default function ScannerPage() {
                 <div className="text-center md:text-left">
                   <span className="text-xs text-on-surface-variant font-medium block">Resumo da Confirmação:</span>
                   <span className="text-sm font-bold text-on-surface">
-                    {selectedCount} {selectedCount === 1 ? 'figurinha selecionada' : 'figurinhas selecionadas'} para somar (+1)
+                    {selectedCount} {selectedCount === 1 ? 'figurinha selecionada' : 'figurinhas selecionadas'} para {scannerMode === 'add' ? 'somar (+1)' : 'subtrair (-1)'}
                   </span>
                 </div>
 
                 {addSuccess ? (
-                  <div className="w-full md:w-auto bg-emerald-500 text-white px-8 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/30 animate-[scale-up-down_0.4s_ease-out]">
+                  <div className={`w-full md:w-auto text-white px-8 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-xl animate-[scale-up-down_0.4s_ease-out] ${scannerMode === 'add' ? 'bg-emerald-500 shadow-emerald-500/30' : 'bg-error shadow-error/30'}`}>
                     <span className="material-symbols-outlined font-bold text-xl">task_alt</span>
-                    <span>Adicionadas com Sucesso!</span>
+                    <span>{scannerMode === 'add' ? 'Adicionadas' : 'Removidas'} com Sucesso!</span>
                   </div>
                 ) : (
                   <button
@@ -570,18 +601,18 @@ export default function ScannerPage() {
                       w-full md:w-auto px-8 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg cursor-pointer
                       ${selectedCount === 0 || isAdding 
                         ? 'bg-surface-container-highest text-on-surface-variant/40 shadow-none cursor-not-allowed' 
-                        : 'bg-secondary text-on-secondary shadow-secondary/20 hover:shadow-secondary/45'}
+                        : scannerMode === 'add' ? 'bg-secondary text-on-secondary shadow-secondary/20 hover:shadow-secondary/45' : 'bg-error text-onError shadow-error/20 hover:shadow-error/45'}
                     `}
                   >
                     {isAdding ? (
                       <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-t-transparent border-on-secondary"></div>
-                        <span>Gravando no Álbum...</span>
+                        <div className={`animate-spin rounded-full h-5 w-5 border-2 border-t-transparent ${scannerMode === 'add' ? 'border-on-secondary' : 'border-onError'}`}></div>
+                        <span>Atualizando Álbum...</span>
                       </>
                     ) : (
                       <>
                         <span className="material-symbols-outlined text-xl">save_as</span>
-                        <span>Confirmar e Adicionar (+{selectedCount})</span>
+                        <span>Confirmar e {scannerMode === 'add' ? 'Adicionar' : 'Remover'} ({scannerMode === 'add' ? '+' : '-'}{selectedCount})</span>
                       </>
                     )}
                   </button>

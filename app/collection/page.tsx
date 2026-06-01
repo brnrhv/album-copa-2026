@@ -133,13 +133,45 @@ export default function CollectionPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          <button 
-            onClick={() => setActiveTeam("")}
-            className="self-start flex items-center gap-2 text-on-surface-variant hover:text-secondary transition-colors py-2 font-label-md"
-          >
-            <span className="material-symbols-outlined text-sm">arrow_back</span>
-            Back to All Categories
-          </button>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full gap-4">
+            <button 
+              onClick={() => setActiveTeam("")}
+              className="flex items-center gap-2 text-on-surface-variant hover:text-secondary transition-colors py-2 font-label-md cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-sm">arrow_back</span>
+              Voltar para Coleções
+            </button>
+
+            <div className="flex items-center gap-2 bg-surface-container-low p-1 rounded-xl">
+              {(() => {
+                const currentTeamIndex = TEAMS.indexOf(activeTeam);
+                const prevTeam = currentTeamIndex > 0 ? TEAMS[currentTeamIndex - 1] : null;
+                const nextTeam = currentTeamIndex < TEAMS.length - 1 ? TEAMS[currentTeamIndex + 1] : null;
+
+                return (
+                  <>
+                    <button
+                      onClick={() => prevTeam && setActiveTeam(prevTeam)}
+                      disabled={!prevTeam}
+                      className={`flex items-center gap-1 font-label-md py-2 px-3 rounded-lg transition-colors ${prevTeam ? 'text-on-surface hover:bg-surface-container-high cursor-pointer' : 'text-on-surface-variant/40 cursor-not-allowed'}`}
+                    >
+                      <span className="material-symbols-outlined text-sm">navigate_before</span>
+                      Anterior
+                    </button>
+                    <div className="w-[1px] h-4 bg-outline-variant/50"></div>
+                    <button
+                      onClick={() => nextTeam && setActiveTeam(nextTeam)}
+                      disabled={!nextTeam}
+                      className={`flex items-center gap-1 font-label-md py-2 px-3 rounded-lg transition-colors ${nextTeam ? 'text-on-surface hover:bg-surface-container-high cursor-pointer' : 'text-on-surface-variant/40 cursor-not-allowed'}`}
+                    >
+                      Próxima
+                      <span className="material-symbols-outlined text-sm">navigate_next</span>
+                    </button>
+                  </>
+                );
+              })()}
+            </div>
+          </div>
 
           {(() => {
             const team = activeTeam;
