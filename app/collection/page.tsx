@@ -132,8 +132,8 @@ export default function CollectionPage() {
           })}
         </div>
       ) : (
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full gap-4">
+        <div className="flex flex-col gap-4 relative">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full gap-4 sticky top-[72px] md:top-6 z-40 bg-surface/95 backdrop-blur-xl py-3 px-2 md:px-4 rounded-2xl border sm:border border-outline-variant/30 shadow-lg">
             <button 
               onClick={() => setActiveTeam("")}
               className="flex items-center gap-2 text-on-surface-variant hover:text-secondary transition-colors py-2 font-label-md cursor-pointer"
