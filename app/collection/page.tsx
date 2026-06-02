@@ -133,10 +133,10 @@ export default function CollectionPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-4 relative">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full gap-4 sticky top-[72px] md:top-6 z-40 bg-surface/95 backdrop-blur-xl py-3 px-2 md:px-4 rounded-2xl border sm:border border-outline-variant/30 shadow-lg">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full gap-4 sticky md:static top-[72px] md:top-auto z-40 md:z-auto bg-surface/95 md:bg-transparent backdrop-blur-xl md:backdrop-blur-none py-3 md:py-0 px-2 md:px-0 rounded-2xl md:rounded-none border border-outline-variant/30 md:border-none shadow-lg md:shadow-none">
             <button 
               onClick={() => setActiveTeam("")}
-              className="flex items-center gap-2 text-on-surface-variant hover:text-secondary transition-colors py-2 font-label-md cursor-pointer"
+              className="flex items-center gap-2 text-on-surface-variant hover:text-secondary transition-colors py-2 md:py-0 font-label-md cursor-pointer"
             >
               <span className="material-symbols-outlined text-sm">arrow_back</span>
               Voltar para Coleções
