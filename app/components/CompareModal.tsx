@@ -85,20 +85,24 @@ export default function CompareModal({ isOpen, onClose }: CompareModalProps) {
     setResult({ matched, missingOnSite, extraOnSite });
   };
 
-  const handleSync = async () => {
+  const handleSync = async (type: 'all' | 'missing' | 'extra') => {
     if (!result) return;
     setIsSyncing(true);
 
     try {
       const codesToAdd: string[] = [];
-      result.missingOnSite.forEach(item => {
-        for (let i = 0; i < item.qty; i++) codesToAdd.push(item.code);
-      });
+      if (type === 'all' || type === 'missing') {
+        result.missingOnSite.forEach(item => {
+          for (let i = 0; i < item.qty; i++) codesToAdd.push(item.code);
+        });
+      }
 
       const codesToRemove: string[] = [];
-      result.extraOnSite.forEach(item => {
-        for (let i = 0; i < item.qty; i++) codesToRemove.push(item.code);
-      });
+      if (type === 'all' || type === 'extra') {
+        result.extraOnSite.forEach(item => {
+          for (let i = 0; i < item.qty; i++) codesToRemove.push(item.code);
+        });
+      }
 
       if (codesToAdd.length > 0) await bulkAddStickers(codesToAdd);
       if (codesToRemove.length > 0) await bulkRemoveStickers(codesToRemove);
@@ -223,7 +227,7 @@ export default function CompareModal({ isOpen, onClose }: CompareModalProps) {
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-outline-variant/30 flex justify-end gap-3 bg-surface-container">
+        <div className="px-6 py-4 border-t border-outline-variant/30 flex justify-end gap-3 bg-surface-container flex-wrap">
           {result && (
             <button
               onClick={() => setResult(null)}
@@ -232,18 +236,46 @@ export default function CompareModal({ isOpen, onClose }: CompareModalProps) {
               Recomeçar
             </button>
           )}
-          {result && (result.extraOnSite.length > 0 || result.missingOnSite.length > 0) && (
+          {result && result.missingOnSite.length > 0 && (
             <button
-              onClick={handleSync}
+              onClick={() => handleSync('missing')}
               disabled={isSyncing}
-              className="px-6 py-2.5 bg-secondary text-on-secondary font-bold rounded-xl transition-all hover:opacity-90 active:scale-[0.98] flex items-center gap-2 shadow-lg shadow-secondary/20 glow-blue cursor-pointer"
+              className="px-4 py-2.5 bg-secondary text-on-secondary font-bold rounded-xl transition-all hover:opacity-90 active:scale-[0.98] flex items-center gap-2 shadow-lg shadow-secondary/20 glow-blue cursor-pointer text-sm"
+            >
+              {isSyncing ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              ) : (
+                <span className="material-symbols-outlined text-sm">add_circle</span>
+              )}
+              Adicionar Faltantes
+            </button>
+          )}
+          {result && result.extraOnSite.length > 0 && (
+            <button
+              onClick={() => handleSync('extra')}
+              disabled={isSyncing}
+              className="px-4 py-2.5 bg-error text-on-error font-bold rounded-xl transition-all hover:opacity-90 active:scale-[0.98] flex items-center gap-2 shadow-lg shadow-error/20 cursor-pointer text-sm"
+            >
+              {isSyncing ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              ) : (
+                <span className="material-symbols-outlined text-sm">remove_circle</span>
+              )}
+              Remover Sobras
+            </button>
+          )}
+          {result && result.extraOnSite.length > 0 && result.missingOnSite.length > 0 && (
+            <button
+              onClick={() => handleSync('all')}
+              disabled={isSyncing}
+              className="px-4 py-2.5 bg-on-surface text-surface font-bold rounded-xl transition-all hover:opacity-90 active:scale-[0.98] flex items-center gap-2 shadow-lg cursor-pointer text-sm"
             >
               {isSyncing ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
               ) : (
                 <span className="material-symbols-outlined text-sm">sync</span>
               )}
-              {isSyncing ? "Sincronizando..." : "Sincronizar Tudo"}
+              Sincronizar Tudo
             </button>
           )}
           {(!result || (result.extraOnSite.length === 0 && result.missingOnSite.length === 0)) && (
