@@ -2,10 +2,12 @@
  
 import { useAppContext } from "../context/AppContext";
 import { useState } from "react";
- 
+import CompareModal from "../components/CompareModal";
+
 export default function RepeatedPage() {
   const { stickers, isHydrated, updateSticker } = useAppContext();
   const [copied, setCopied] = useState(false);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
  
   if (!isHydrated) return <div className="animate-pulse h-screen bg-surface"></div>;
  
@@ -42,14 +44,23 @@ export default function RepeatedPage() {
           <h1 className="font-display-lg text-display-lg text-on-surface mb-2">Figurinhas Repetidas</h1>
           <p className="font-body-md text-on-surface-variant">Você tem um total de {totalRepeated} figurinhas repetidas para trocar.</p>
         </div>
-        <button 
-          onClick={handleExport}
-          disabled={repeatedStickers.length === 0}
-          className="flex items-center gap-2 bg-surface-container-high border border-outline-variant hover:bg-surface-container-highest text-on-surface px-6 py-3 rounded-lg font-label-sm transition-colors disabled:opacity-50"
-        >
-          <span className="material-symbols-outlined">{copied ? "check" : "content_copy"}</span>
-          {copied ? "COPIADO!" : "COPIAR LISTA"}
-        </button>
+        <div className="flex items-center gap-3 flex-wrap">
+          <button
+            onClick={() => setIsCompareModalOpen(true)}
+            className="flex items-center gap-2 bg-secondary text-on-secondary font-bold hover:opacity-90 active:scale-[0.98] px-6 py-3 rounded-xl transition-all shadow-lg shadow-secondary/20 glow-blue cursor-pointer text-sm"
+          >
+            <span className="material-symbols-outlined text-[18px]">compare_arrows</span>
+            COMPARAR
+          </button>
+          <button 
+            onClick={handleExport}
+            disabled={repeatedStickers.length === 0}
+            className="flex items-center gap-2 bg-surface-container-high border border-outline-variant hover:bg-surface-container-highest text-on-surface font-bold px-6 py-3 rounded-xl text-sm transition-colors disabled:opacity-50 cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[18px]">{copied ? "check" : "content_copy"}</span>
+            {copied ? "COPIADO!" : "COPIAR LISTA"}
+          </button>
+        </div>
       </div>
  
       {repeatedStickers.length === 0 ? (
@@ -88,6 +99,11 @@ export default function RepeatedPage() {
           ))}
         </div>
       )}
+
+      <CompareModal 
+        isOpen={isCompareModalOpen}
+        onClose={() => setIsCompareModalOpen(false)}
+      />
     </div>
   );
 }
