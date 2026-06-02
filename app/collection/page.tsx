@@ -36,7 +36,7 @@ export default function CollectionPage() {
   const [selectedSticker, setSelectedSticker] = useState<Sticker | null>(null);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [bulkModalMode, setBulkModalMode] = useState<'add' | 'remove'>('add');
-  const [sortOrder, setSortOrder] = useState<'album' | 'alpha'>('album');
+  const [sortOrder, setSortOrder] = useState<'album' | 'alpha' | 'completion'>('album');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   if (!isHydrated) return <div className="animate-pulse h-screen bg-surface"></div>;
@@ -44,6 +44,25 @@ export default function CollectionPage() {
   let TEAMS = Array.from(new Set(stickers.map(s => s.team)));
   if (sortOrder === 'alpha') {
     TEAMS = [...TEAMS].sort((a, b) => a.localeCompare(b));
+  } else if (sortOrder === 'completion') {
+    const getCompletion = (team: string) => {
+      let collected = 0;
+      let total = 0;
+      for (const s of stickers) {
+        if (s.team === team) {
+          total++;
+          if (s.quantityOwned > 0) collected++;
+        }
+      }
+      return total === 0 ? 0 : (collected / total);
+    };
+    
+    TEAMS = [...TEAMS].sort((a, b) => {
+      const compA = getCompletion(a);
+      const compB = getCompletion(b);
+      if (compA !== compB) return compB - compA;
+      return a.localeCompare(b);
+    });
   }
 
   return (
@@ -57,11 +76,12 @@ export default function CollectionPage() {
           <div className="relative">
             <select 
               value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value as 'album' | 'alpha')}
+              onChange={(e) => setSortOrder(e.target.value as 'album' | 'alpha' | 'completion')}
               className="appearance-none px-4 py-3 pr-10 bg-surface-container border border-outline-variant text-on-surface rounded-xl text-sm font-semibold outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-colors cursor-pointer"
             >
               <option value="album">Ordem do Álbum</option>
               <option value="alpha">Ordem Alfabética</option>
+              <option value="completion">Mais Próximas</option>
             </select>
             <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
           </div>
