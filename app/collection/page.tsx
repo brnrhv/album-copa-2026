@@ -7,6 +7,29 @@ import BulkActionModal from "../components/BulkActionModal";
 import { Sticker } from "../types";
 import { renderTeamFlag } from "../utils/flags";
 
+const TEAM_PAGES: Record<string, string> = {
+  "MEX": "8", "RSA": "10", "KOR": "12", "CZE": "14",
+  "CAN": "16", "BIH": "18", "QAT": "20", "SUI": "22",
+  "BRA": "24", "MAR": "26", "HAI": "28", "SCO": "30",
+  "USA": "32", "PAR": "34", "AUS": "36", "TUR": "38",
+  "GER": "40", "CUW": "42", "CIV": "44", "ECU": "46",
+  "NED": "48", "JPN": "50", "SWE": "52", "TUN": "54",
+  "BEL": "58", "EGY": "60", "IRN": "62", "NZL": "64",
+  "ESP": "66", "CPV": "68", "KSA": "70", "URU": "72",
+  "FRA": "74", "SEN": "76", "IRQ": "78", "NOR": "80",
+  "ARG": "82", "ALG": "84", "AUT": "86", "JOR": "88",
+  "POR": "90", "COD": "92", "UZB": "94", "COL": "96",
+  "ENG": "98", "CRO": "100", "GHA": "102", "PAN": "104"
+};
+
+const getTeamDisplayName = (teamName: string, teamStickers: Sticker[]) => {
+  const code = teamStickers[0]?.teamCode;
+  if (code && TEAM_PAGES[code]) {
+    return `${teamName} ${TEAM_PAGES[code]} | ${code}`;
+  }
+  return teamName;
+};
+
 export default function CollectionPage() {
   const { stickers, isHydrated, updateSticker, bulkAddStickers, bulkRemoveStickers } = useAppContext();
   const [activeTeam, setActiveTeam] = useState<string>("");
@@ -110,7 +133,9 @@ export default function CollectionPage() {
               >
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-title-md text-on-surface font-bold group-hover:text-secondary transition-colors">{team}</h3>
+                    <h3 className="font-title-md text-on-surface font-bold group-hover:text-secondary transition-colors">
+                      {getTeamDisplayName(team, teamStickers)}
+                    </h3>
                     {progress === 100 && (
                       <div className="animate-scale-in drop-shadow-md" title="Seleção Completa!">
                         {renderTeamFlag(team, "w-8 h-6 rounded shadow-sm object-cover")}
@@ -188,7 +213,7 @@ export default function CollectionPage() {
                 <div className="w-full flex items-center justify-between p-6 text-left border-b border-outline-variant/30 bg-surface-container-low">
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-3">
-                      <h3 className="font-headline-md text-on-surface font-bold">{team}</h3>
+                      <h3 className="font-headline-md text-on-surface font-bold">{getTeamDisplayName(team, teamStickers)}</h3>
                       {progress === 100 && (
                         <div className="animate-scale-in drop-shadow-lg" title="Seleção Completa!">
                           {renderTeamFlag(team, "w-10 h-7 rounded shadow-md object-cover")}
