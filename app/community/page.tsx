@@ -50,19 +50,38 @@ export default function CommunityPage() {
       setIsLoading(true);
 
       // 1. Buscar todos os perfis e relação de amizades do usuário em paralelo
-      const [profilesRes, friendsRes, stickersRes] = await Promise.all([
+      const [profilesRes, friendsRes] = await Promise.all([
         supabase.from('profiles').select('*'),
-        supabase.from('friends').select('*').or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`),
-        supabase.from('user_stickers').select('*')
+        supabase.from('friends').select('*').or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
       ]);
 
       if (profilesRes.error) throw profilesRes.error;
       if (friendsRes.error) throw friendsRes.error;
-      if (stickersRes.error) throw stickersRes.error;
+
+      // Fetch user_stickers with pagination to overcome the 1000 limit
+      let allStickers: any[] = [];
+      let page = 0;
+      const pageSize = 1000;
+      let hasMore = true;
+      
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from('user_stickers')
+          .select('*')
+          .range(page * pageSize, (page + 1) * pageSize - 1);
+          
+        if (error) throw error;
+        
+        allStickers = [...allStickers, ...(data || [])];
+        if (!data || data.length < pageSize) {
+          hasMore = false;
+        } else {
+          page++;
+        }
+      }
 
       const profiles = profilesRes.data || [];
       const friends = friendsRes.data || [];
-      const allStickers = stickersRes.data || [];
 
       // Mapeamento de figurinhas padrão por ID para acesso O(1) rápido
       const stickerTemplatesMap: Record<string, any> = {};
