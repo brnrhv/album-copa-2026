@@ -139,8 +139,12 @@ export default function Header({ onToggleMenu }: { onToggleMenu: () => void }) {
   }, []);
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && query.trim()) {
-      router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+    if (e.key === "Enter") {
+      if (query.trim()) {
+        router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+      } else {
+        router.push('/collection');
+      }
     }
   };
 
