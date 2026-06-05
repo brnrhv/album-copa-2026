@@ -83,10 +83,12 @@ export default function CommunityPage() {
       const profiles = profilesRes.data || [];
       const friends = friendsRes.data || [];
 
-      // Mapeamento de figurinhas padrão por ID para acesso O(1) rápido
+      // Mapeamento de figurinhas padrão por ID para acesso O(1) rápido e ordem
       const stickerTemplatesMap: Record<string, any> = {};
-      defaultData.forEach((item) => {
+      const stickerOrderMap: Record<string, number> = {};
+      defaultData.forEach((item, index) => {
         stickerTemplatesMap[item.id] = item;
+        stickerOrderMap[item.id] = index;
       });
 
       // 2. Mapear os outros usuários associando os dados de amizades e inteligência de trocas
@@ -144,6 +146,10 @@ export default function CommunityPage() {
               }
             });
           }
+
+          // Ordenar as figurinhas pela ordem do álbum
+          theyHaveINeed.sort((a, b) => (stickerOrderMap[a.id] ?? 9999) - (stickerOrderMap[b.id] ?? 9999));
+          iHaveTheyNeed.sort((a, b) => (stickerOrderMap[a.id] ?? 9999) - (stickerOrderMap[b.id] ?? 9999));
 
           return {
             id: profile.id,

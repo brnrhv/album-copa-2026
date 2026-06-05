@@ -42,9 +42,9 @@ export default function MissingPage() {
         <button 
           onClick={handleExport}
           disabled={missingStickers.length === 0}
-          className="flex items-center gap-2 bg-surface-container-high border border-outline-variant hover:bg-surface-container-highest text-on-surface px-6 py-3 rounded-lg font-label-sm transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 bg-surface-container-high border border-outline-variant hover:bg-surface-container-highest text-on-surface font-bold px-6 py-3 rounded-xl text-sm transition-colors disabled:opacity-50 cursor-pointer"
         >
-          <span className="material-symbols-outlined">{copied ? "check" : "content_copy"}</span>
+          <span className="material-symbols-outlined text-[18px]">{copied ? "check" : "content_copy"}</span>
           {copied ? "COPIADO!" : "COPIAR LISTA"}
         </button>
       </div>
