@@ -30,9 +30,9 @@ export async function POST(request: NextRequest) {
     // Initialize Google Generative AI with the secure Server-Side API Key
     const genAI = new GoogleGenerativeAI(apiKey);
     
-    // Using gemini-flash-latest: dynamic production alias with guaranteed active free quota
+    // Using gemini-1.5-flash: more stable than the -latest alias
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-flash-latest",
+      model: "gemini-1.5-flash",
       generationConfig: { 
         responseMimeType: "application/json" 
       }
@@ -89,8 +89,16 @@ Guidelines for extraction:
 
   } catch (error: any) {
     console.error("Error calling Gemini API in server-side route:", error);
+    
+    let errorMessage = error.message || "Ocorreu um erro de comunicação com o servidor da IA.";
+    
+    // Check for 503 Service Unavailable or High Demand
+    if (errorMessage.includes("503") || errorMessage.includes("high demand") || errorMessage.toLowerCase().includes("service unavailable")) {
+      errorMessage = "O serviço de IA (Gemini) está com alta demanda no momento. Por favor, aguarde alguns instantes e tente novamente.";
+    }
+
     return NextResponse.json(
-      { error: error.message || "Ocorreu um erro de comunicação com o servidor da IA." },
+      { error: errorMessage },
       { status: 500 }
     );
   }

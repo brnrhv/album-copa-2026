@@ -2,10 +2,12 @@
  
 import { useAppContext } from "../context/AppContext";
 import { useState } from "react";
+import WantedStickersModal from "../components/WantedStickersModal";
  
 export default function MissingPage() {
   const { stickers, isHydrated } = useAppContext();
   const [copied, setCopied] = useState(false);
+  const [isWantedModalOpen, setIsWantedModalOpen] = useState(false);
  
   if (!isHydrated) return <div className="animate-pulse h-screen bg-surface"></div>;
  
@@ -39,14 +41,23 @@ export default function MissingPage() {
           <h1 className="font-display-lg text-display-lg text-on-surface mb-2">Faltando no Álbum</h1>
           <p className="font-body-md text-on-surface-variant">Faltam {totalMissing} figurinhas para você completar o álbum!</p>
         </div>
-        <button 
-          onClick={handleExport}
-          disabled={missingStickers.length === 0}
-          className="flex items-center gap-2 bg-surface-container-high border border-outline-variant hover:bg-surface-container-highest text-on-surface font-bold px-6 py-3 rounded-xl text-sm transition-colors disabled:opacity-50 cursor-pointer"
-        >
-          <span className="material-symbols-outlined text-[18px]">{copied ? "check" : "content_copy"}</span>
-          {copied ? "COPIADO!" : "COPIAR LISTA"}
-        </button>
+        <div className="flex items-center gap-3 flex-wrap">
+          <button
+            onClick={() => setIsWantedModalOpen(true)}
+            className="flex items-center gap-2 bg-secondary text-on-secondary font-bold hover:opacity-90 active:scale-[0.98] px-6 py-3 rounded-xl transition-all shadow-lg shadow-secondary/20 glow-blue cursor-pointer text-sm"
+          >
+            <span className="material-symbols-outlined text-[18px]">checklist</span>
+            VERIFICAR LISTA
+          </button>
+          <button 
+            onClick={handleExport}
+            disabled={missingStickers.length === 0}
+            className="flex items-center gap-2 bg-surface-container-high border border-outline-variant hover:bg-surface-container-highest text-on-surface font-bold px-6 py-3 rounded-xl text-sm transition-colors disabled:opacity-50 cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[18px]">{copied ? "check" : "content_copy"}</span>
+            {copied ? "COPIADO!" : "COPIAR LISTA"}
+          </button>
+        </div>
       </div>
  
       {missingStickers.length === 0 ? (
@@ -76,6 +87,11 @@ export default function MissingPage() {
           ))}
         </div>
       )}
+
+      <WantedStickersModal 
+        isOpen={isWantedModalOpen}
+        onClose={() => setIsWantedModalOpen(false)}
+      />
     </div>
   );
 }

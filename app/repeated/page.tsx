@@ -21,9 +21,14 @@ export default function RepeatedPage() {
     grouped[s.team].push(s);
   });
  
+  const sortedTeams = Object.keys(grouped).sort((a, b) => a.localeCompare(b));
+  sortedTeams.forEach(team => {
+    grouped[team].sort((a, b) => a.code.localeCompare(b.code));
+  });
+
   const handleExport = () => {
     let text = "Figurinhas Repetidas Disponíveis para Troca:\n\n";
-    Object.keys(grouped).forEach(team => {
+    sortedTeams.forEach(team => {
       text += `${team}:\n`;
       const codes = grouped[team].map(s => {
         const qty = s.quantityOwned - 1;
@@ -71,7 +76,9 @@ export default function RepeatedPage() {
         </div>
       ) : (
         <div className="space-y-8">
-          {Object.entries(grouped).map(([team, list]) => (
+          {sortedTeams.map(team => {
+            const list = grouped[team];
+            return (
             <div key={team} className="glass-card p-6 rounded-xl border-l-4 border-l-tertiary">
               <h2 className="font-headline-md text-on-surface mb-4 flex items-center justify-between">
                 {team}
@@ -96,7 +103,7 @@ export default function RepeatedPage() {
                 ))}
               </div>
             </div>
-          ))}
+          )})}
         </div>
       )}
 
