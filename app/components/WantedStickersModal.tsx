@@ -41,17 +41,23 @@ export default function WantedStickersModal({ isOpen, onClose }: WantedStickersM
   };
 
   const handleCheck = () => {
-    const rawList = inputValue
-      .replace(/\n/g, ",")
-      .split(",")
+    // Remove (x2), x3, etc.
+    const cleanedInput = inputValue.replace(/\(?x\d+\)?/gi, "");
+
+    const rawList = cleanedInput
+      .replace(/[\n:,;]+/g, " ")
+      .split(" ")
       .map(s => s.trim())
-      .filter(Boolean);
+      .filter(s => /^[A-Za-z]+\d+$/.test(s));
 
     const needed: { code: string }[] = [];
     const alreadyHave: { code: string }[] = [];
     const invalid: string[] = [];
 
-    rawList.forEach(raw => {
+    // Deduplicate the rawList
+    const uniqueRawList = Array.from(new Set(rawList));
+
+    uniqueRawList.forEach(raw => {
       const code = normalizeCode(raw);
       const sticker = stickers.find(s => s.code === code);
       if (!sticker) {
